@@ -3,11 +3,9 @@ import {
   browserPerformanceTimeOrigin,
   debug,
   getActiveSpan,
-  getCurrentScope,
   getRootSpan,
   hasSpanStreamingEnabled,
   SEMANTIC_ATTRIBUTE_EXCLUSIVE_TIME,
-  spanToJSON,
   timestampInSeconds,
 } from '@sentry/core';
 import { DEBUG_BUILD } from '../debug-build';
@@ -27,7 +25,6 @@ import { listenForWebVitalReportEvents } from './reportEvents';
 import { getNavigationSpanForMetric } from './softNavs';
 import { getBrowserPerformanceAPI, msToSec, supportsWebVital } from '../performance/utils';
 import type { PerformanceEventTiming } from '../instrumentation/performanceObserver';
-import { SENTRY_SEGMENT_NAME, SENTRY_TRANSACTION } from '@sentry/conventions/attributes';
 
 type WebVitalMetric = Parameters<Parameters<typeof addLcpInstrumentationHandler>[0]>[0]['metric'];
 
@@ -284,7 +281,6 @@ export function _sendInpSpan(
   const rootSpan = activeSpan ? getRootSpan(activeSpan) : undefined;
 
   const spanToUse = navigationSpan || cachedContext?.span || rootSpan;
-  const routeName = spanToUse ? spanToJSON(spanToUse).name : getCurrentScope().getScopeData().transactionName;
   const name = cachedContext?.elementName || htmlTreeAsString(entry.target);
 
   _emitWebVitalSpan({
@@ -295,9 +291,6 @@ export function _sendInpSpan(
     value: inpValue,
     attributes: {
       [SEMANTIC_ATTRIBUTE_EXCLUSIVE_TIME]: entry.duration,
-      // oxlint-disable-next-line typescript-eslint/no-deprecated
-      [SENTRY_TRANSACTION]: routeName,
-      [SENTRY_SEGMENT_NAME]: routeName,
     },
     startTime,
     endTime: startTime + duration,

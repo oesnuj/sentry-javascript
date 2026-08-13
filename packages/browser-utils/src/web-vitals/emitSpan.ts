@@ -75,7 +75,10 @@ export function _emitWebVitalSpan(options: WebVitalSpanOptions): void {
     softNavigationId,
   } = options;
 
-  const routeName = getCurrentScope().getScopeData().transactionName;
+  // A web vital can be reported long after the user left the route it belongs to: a soft
+  // navigation's CLS and INP only finalize at the next navigation. The scope's transaction name has
+  // moved on to that next route by then, so prefer the name of the span the vital is attributed to.
+  const routeName = (parentSpan && spanToJSON(parentSpan).name) || getCurrentScope().getScopeData().transactionName;
 
   const attributes: SpanAttributes = {
     [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: origin,
