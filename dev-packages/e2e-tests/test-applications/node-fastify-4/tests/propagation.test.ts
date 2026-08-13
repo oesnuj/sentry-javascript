@@ -56,7 +56,7 @@ test('Propagates trace for outgoing http requests', async ({ baseURL }) => {
 
   expect(outboundTransaction.contexts?.trace).toEqual({
     data: {
-      'sentry.source': 'route',
+      'sentry.segment.name.source': 'route',
       'sentry.origin': 'auto.http.otel.http',
       'sentry.op': 'http.server',
       'sentry.sample_rate': 1,
@@ -96,7 +96,7 @@ test('Propagates trace for outgoing http requests', async ({ baseURL }) => {
 
   expect(inboundTransaction.contexts?.trace).toEqual({
     data: {
-      'sentry.source': 'route',
+      'sentry.segment.name.source': 'route',
       'sentry.origin': 'auto.http.otel.http',
       'sentry.op': 'http.server',
       'sentry.kind': 'server',
@@ -185,7 +185,7 @@ test('Propagates trace for outgoing fetch requests', async ({ baseURL }) => {
 
   expect(outboundTransaction.contexts?.trace).toEqual({
     data: {
-      'sentry.source': 'route',
+      'sentry.segment.name.source': 'route',
       'sentry.origin': 'auto.http.otel.http',
       'sentry.op': 'http.server',
       'sentry.sample_rate': 1,
@@ -225,7 +225,7 @@ test('Propagates trace for outgoing fetch requests', async ({ baseURL }) => {
 
   expect(inboundTransaction.contexts?.trace).toEqual({
     data: {
-      'sentry.source': 'route',
+      'sentry.segment.name.source': 'route',
       'sentry.origin': 'auto.http.otel.http',
       'sentry.op': 'http.server',
       'sentry.kind': 'server',

@@ -14,7 +14,7 @@ test('sends a pageload transaction with a parameterized URL', async ({ page }) =
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.pageload.react.tanstack_router',
           'sentry.op': 'pageload',
           'url.path.params.postId': '456',
@@ -53,7 +53,7 @@ test('sends pageload transaction with web vitals measurements', async ({ page })
         op: 'pageload',
         origin: 'auto.pageload.react.tanstack_router',
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'url.template': '/',
           'url.path': '/',
           'url.full': expect.stringMatching(/^https?:\/\/localhost:\d+\/$/),
@@ -106,7 +106,7 @@ test('sends a navigation transaction with a parameterized URL', async ({ page })
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.navigation.react.tanstack_router',
           'sentry.op': 'navigation',
           'url.path.params.postId': '2',
@@ -146,7 +146,7 @@ test('sends a pageload transaction with resolved URL attrs after same-route redi
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.pageload.react.tanstack_router',
           'sentry.op': 'pageload',
           'url.path.params.postId': '2',
@@ -182,7 +182,7 @@ test('sends a pageload transaction named after the resolved route when a redirec
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.pageload.react.tanstack_router',
           'sentry.op': 'pageload',
           'url.path.params.postId': '1',
@@ -223,7 +223,7 @@ test('sends a navigation transaction when a redirect is thrown in beforeLoad', a
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.navigation.react.tanstack_router',
           'sentry.op': 'navigation',
           'url.path.params.postId': '1',
@@ -275,7 +275,7 @@ test('sends a navigation transaction for a normal navigation that happens after 
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.navigation.react.tanstack_router',
           'sentry.op': 'navigation',
           'url.path.params.postId': '2',

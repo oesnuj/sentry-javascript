@@ -16,7 +16,7 @@ test('Sends a pageload transaction to Sentry', async ({ page }) => {
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'url',
+          'sentry.segment.name.source': 'url',
           'url.full': expect.stringMatching(/^https?:\/\/localhost:\d+\/$/),
           'url.path': '/',
         },
@@ -56,7 +56,7 @@ test('Sends a navigation transaction to Sentry', async ({ page }) => {
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'url.full': expect.stringMatching(/^https?:\/\/localhost:\d+\/user\/5$/),
           'url.path': '/user/5',
           'url.template': '/user/:id',

@@ -21,7 +21,6 @@ vi.mock('@sentry/core', async () => {
     GLOBAL_OBJ: globalThis,
     SEMANTIC_ATTRIBUTE_SENTRY_OP: 'sentry.op',
     SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN: 'sentry.origin',
-    SEMANTIC_ATTRIBUTE_SENTRY_SOURCE: 'sentry.source',
   };
 });
 
@@ -109,7 +108,7 @@ describe('createSentryClientInstrumentation', () => {
       {
         name: '/about',
         attributes: expect.objectContaining({
-          'sentry.source': 'url',
+          'sentry.segment.name.source': 'url',
           'sentry.op': 'navigation',
           'sentry.origin': 'auto.navigation.react_router.instrumentation_api',
           'navigation.type': 'router.navigate',
@@ -179,7 +178,7 @@ describe('createSentryClientInstrumentation', () => {
       {
         name: '/items/123',
         attributes: expect.objectContaining({
-          'sentry.source': 'url',
+          'sentry.segment.name.source': 'url',
           'sentry.op': 'navigation',
           'sentry.origin': 'auto.navigation.react_router.instrumentation_api',
           'navigation.type': 'router.navigate',
@@ -466,7 +465,7 @@ describe('createSentryClientInstrumentation', () => {
           {
             name: '/current-page',
             attributes: expect.objectContaining({
-              'sentry.source': 'url',
+              'sentry.segment.name.source': 'url',
               'sentry.op': 'navigation',
               'sentry.origin': 'auto.navigation.react_router.instrumentation_api',
               'navigation.type': expectedType,
@@ -476,7 +475,7 @@ describe('createSentryClientInstrumentation', () => {
         );
         expect(mockNavigationSpan.updateName).toHaveBeenCalledWith(destination);
         expect(mockNavigationSpan.setAttributes).toHaveBeenCalledWith({
-          'sentry.source': 'url',
+          'sentry.segment.name.source': 'url',
           'url.path': destination,
           'url.full': `https://example.com${destination}`,
         });
@@ -518,7 +517,7 @@ describe('createSentryClientInstrumentation', () => {
       await hooks.navigate(mockCallNavigate, { currentUrl: '/current-page', to: -1 });
 
       expect(mockNavigationSpan.setAttributes).toHaveBeenCalledWith({
-        'sentry.source': 'url',
+        'sentry.segment.name.source': 'url',
         'url.path': '/previous-page',
         'url.full': 'https://example.com/previous-page',
       });
@@ -736,7 +735,7 @@ describe('createSentryClientInstrumentation', () => {
         {
           name: '/current-page',
           attributes: expect.objectContaining({
-            'sentry.source': 'url',
+            'sentry.segment.name.source': 'url',
             'sentry.op': 'navigation',
             'sentry.origin': 'auto.navigation.react_router.instrumentation_api',
             'navigation.type': 'browser.popstate',
@@ -786,7 +785,7 @@ describe('createSentryClientInstrumentation', () => {
       // Only ONE span created (not two - no duplicate from popstate)
       expect(browser.startBrowserTracingNavigationSpan).toHaveBeenCalledTimes(1);
       expect(mockNavigationSpan.setAttributes).toHaveBeenLastCalledWith({
-        'sentry.source': 'url',
+        'sentry.segment.name.source': 'url',
         'url.path': '/previous-page',
         'url.full': 'https://example.com/previous-page',
       });
@@ -916,7 +915,10 @@ describe('navigation root parameterization', () => {
     });
 
     expect(core.updateSpanName).toHaveBeenCalledWith(mockRootSpan, '/users/:id');
-    expect(mockRootSpan.setAttributes).toHaveBeenCalledWith({ 'sentry.source': 'route', 'url.template': '/users/:id' });
+    expect(mockRootSpan.setAttributes).toHaveBeenCalledWith({
+      'sentry.segment.name.source': 'route',
+      'url.template': '/users/:id',
+    });
   });
 
   it('does not rename the root span when the route has no pattern', async () => {

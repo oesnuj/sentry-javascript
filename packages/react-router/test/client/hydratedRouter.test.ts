@@ -1,8 +1,8 @@
+import { SENTRY_SEGMENT_NAME_SOURCE } from '@sentry/conventions/attributes';
 import * as browser from '@sentry/browser';
 import * as core from '@sentry/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { instrumentHydratedRouter } from '../../src/client/hydratedRouter';
-import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from '@sentry/core';
 
 vi.mock('@sentry/core', async () => {
   const actual = await vi.importActual<any>('@sentry/core');
@@ -17,7 +17,7 @@ vi.mock('@sentry/core', async () => {
     },
     SEMANTIC_ATTRIBUTE_SENTRY_OP: 'sentry.op',
     SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN: 'sentry.origin',
-    SEMANTIC_ATTRIBUTE_SENTRY_SOURCE: 'sentry.source',
+
     GLOBAL_OBJ: globalThis,
   };
 });
@@ -109,7 +109,7 @@ describe('instrumentHydratedRouter', () => {
     callback(newState);
     expect(mockNavigationSpan.updateName).toHaveBeenCalledWith('/foo/:id');
     expect(mockNavigationSpan.setAttributes).toHaveBeenCalledWith({
-      [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'route',
+      [SENTRY_SEGMENT_NAME_SOURCE]: 'route',
       'url.template': '/foo/:id',
     });
   });
@@ -134,7 +134,7 @@ describe('instrumentHydratedRouter', () => {
     expect(mockNavigationSpan.setAttribute).not.toHaveBeenCalled();
     expect(mockNavigationSpan.setAttributes).not.toHaveBeenCalled();
     expect(mockPageloadSpan.setAttributes).toHaveBeenLastCalledWith({
-      [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'route',
+      [SENTRY_SEGMENT_NAME_SOURCE]: 'route',
       'url.template': '/foo/:id',
     });
   });
@@ -160,7 +160,7 @@ describe('instrumentHydratedRouter', () => {
 
     expect(mockNavigationSpan.updateName).toHaveBeenCalledWith('/foo/:id');
     expect(mockNavigationSpan.setAttributes).toHaveBeenCalledWith({
-      [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'route',
+      [SENTRY_SEGMENT_NAME_SOURCE]: 'route',
       'url.template': '/foo/:id',
     });
 
@@ -246,7 +246,7 @@ describe('instrumentHydratedRouter', () => {
 
     expect(mockNavigationSpan.updateName).toHaveBeenCalledWith('/foo/bar/settings');
     expect(mockNavigationSpan.setAttributes).toHaveBeenCalledWith({
-      [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'route',
+      [SENTRY_SEGMENT_NAME_SOURCE]: 'route',
       'url.template': '/foo/bar/settings',
     });
   });
@@ -282,13 +282,13 @@ describe('instrumentHydratedRouter', () => {
 
     expect(mockNavigationSpan.updateName).toHaveBeenCalledWith('/foo');
     expect(mockNavigationSpan.setAttributes).toHaveBeenCalledWith({
-      'sentry.source': 'url',
+      'sentry.segment.name.source': 'url',
       'url.path': '/foo',
       'url.full': 'https://example.com/foo',
     });
     expect(mockNavigationSpan.updateName).toHaveBeenLastCalledWith('/foo/:id');
     expect(mockNavigationSpan.setAttributes).toHaveBeenLastCalledWith({
-      [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'route',
+      [SENTRY_SEGMENT_NAME_SOURCE]: 'route',
       'url.template': '/foo/:id',
     });
   });
@@ -315,7 +315,7 @@ describe('instrumentHydratedRouter', () => {
     await navigateResult.catch(() => undefined);
 
     expect(mockNavigationSpan.setAttributes).toHaveBeenCalledWith({
-      'sentry.source': 'url',
+      'sentry.segment.name.source': 'url',
       'url.path': '/foo',
       'url.full': 'https://example.com/foo',
     });
@@ -334,7 +334,7 @@ describe('instrumentHydratedRouter', () => {
     expect(mockNavigationSpan.updateName).toHaveBeenCalledWith('/foo');
     expect(mockNavigationSpan.updateName).toHaveBeenCalledTimes(1);
     expect(mockNavigationSpan.setAttributes).toHaveBeenCalledWith({
-      'sentry.source': 'url',
+      'sentry.segment.name.source': 'url',
       'url.path': '/foo',
       'url.full': 'https://example.com/foo',
     });
@@ -354,7 +354,7 @@ describe('instrumentHydratedRouter', () => {
 
     expect(mockNavigationSpan.updateName).toHaveBeenCalledWith('/foo/:id');
     expect(mockNavigationSpan.setAttributes).toHaveBeenLastCalledWith({
-      [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'route',
+      [SENTRY_SEGMENT_NAME_SOURCE]: 'route',
       'url.template': '/foo/:id',
     });
   });

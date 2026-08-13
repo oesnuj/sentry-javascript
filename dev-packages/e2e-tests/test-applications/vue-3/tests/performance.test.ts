@@ -14,7 +14,7 @@ test('sends a pageload transaction with a parameterized URL', async ({ page }) =
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.pageload.vue',
           'sentry.op': 'pageload',
           'params.id': '456',
@@ -53,7 +53,7 @@ test('sends a navigation transaction with a parameterized URL', async ({ page })
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.navigation.vue',
           'sentry.op': 'navigation',
           'params.id': '123',
@@ -85,7 +85,7 @@ test('sends a pageload transaction with a nested route URL', async ({ page }) =>
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.pageload.vue',
           'sentry.op': 'pageload',
           'params.id': '123',
@@ -117,7 +117,7 @@ test('sends a pageload transaction with a route name as transaction name if avai
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'custom',
+          'sentry.segment.name.source': 'custom',
           'sentry.origin': 'auto.pageload.vue',
           'sentry.op': 'pageload',
           'navigation.route.id': 'AboutView',
@@ -148,7 +148,7 @@ test('sends a lifecycle span for each tracked components', async ({ page }) => {
     contexts: {
       trace: {
         data: {
-          'sentry.source': 'route',
+          'sentry.segment.name.source': 'route',
           'sentry.origin': 'auto.pageload.vue',
           'sentry.op': 'pageload',
           'url.template': '/components',

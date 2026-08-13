@@ -8,7 +8,6 @@ import {
   Scope,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
-  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   setAsyncContextStrategy,
   setCurrentClient,
   spanToJSON,
@@ -36,6 +35,7 @@ import { getActiveSpan, getRootSpan, getSpanDescendants, spanIsSampled } from '.
 import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
 import { SUPPRESS_TRACING_KEY } from '../../../src/tracing/constants';
 import { resetGlobals } from '../../testutils';
+import { SENTRY_SEGMENT_NAME_SOURCE } from '@sentry/conventions/attributes';
 
 const enum Type {
   Sync = 'sync',
@@ -198,7 +198,7 @@ describe('startSpan', () => {
         attributes: {
           'sentry.origin': 'auto.http.browser',
           'sentry.sample_rate': 1,
-          'sentry.source': 'custom',
+          'sentry.segment.name.source': 'custom',
           ...(isError && { 'sentry.status.message': 'internal_error' }),
         },
         name: 'GET users/[id]',
@@ -291,7 +291,7 @@ describe('startSpan', () => {
     const span = startSpan(
       {
         name: '/users/123e4567-e89b-12d3-a456-426614174000',
-        attributes: { [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'url' },
+        attributes: { [SENTRY_SEGMENT_NAME_SOURCE]: 'url' },
       },
       span => span,
     );
@@ -566,7 +566,7 @@ describe('startSpan', () => {
     expect(outerTransaction?.contexts).toEqual({
       trace: {
         data: {
-          'sentry.source': 'custom',
+          'sentry.segment.name.source': 'custom',
           'sentry.sample_rate': 1,
           'sentry.origin': 'manual',
         },
@@ -592,7 +592,7 @@ describe('startSpan', () => {
     expect(innerTransaction?.contexts).toEqual({
       trace: {
         data: {
-          'sentry.source': 'custom',
+          'sentry.segment.name.source': 'custom',
           'sentry.origin': 'manual',
         },
         parent_span_id: innerParentSpanId,
@@ -779,27 +779,6 @@ describe('startSpan', () => {
           test1: 'aa',
           test2: 'aa',
           test3: 'bb',
-        },
-        inheritOrSampleWith: expect.any(Function),
-      });
-    });
-
-    it('passes a `sentry.op` attribute to the tracesSampler when `op` is set', () => {
-      tracesSampler.mockReturnValueOnce(true);
-
-      const options = getDefaultTestClientOptions({ tracesSampler });
-      client = new TestClient(options);
-      setCurrentClient(client);
-      client.init();
-
-      startSpan({ name: 'outer', op: 'test.op', attributes: { test1: 'aa' } }, () => {});
-
-      expect(tracesSampler).toHaveBeenLastCalledWith({
-        parentSampled: undefined,
-        name: 'outer',
-        attributes: {
-          'sentry.op': 'test.op',
-          test1: 'aa',
         },
         inheritOrSampleWith: expect.any(Function),
       });
@@ -1167,7 +1146,7 @@ describe('startSpanManual', () => {
     expect(outerTransaction?.contexts).toEqual({
       trace: {
         data: {
-          'sentry.source': 'custom',
+          'sentry.segment.name.source': 'custom',
           'sentry.sample_rate': 1,
           'sentry.origin': 'manual',
         },
@@ -1193,7 +1172,7 @@ describe('startSpanManual', () => {
     expect(innerTransaction?.contexts).toEqual({
       trace: {
         data: {
-          'sentry.source': 'custom',
+          'sentry.segment.name.source': 'custom',
           'sentry.origin': 'manual',
         },
         parent_span_id: innerParentSpanId,
@@ -1630,7 +1609,7 @@ describe('startInactiveSpan', () => {
     expect(outerTransaction?.contexts).toEqual({
       trace: {
         data: {
-          'sentry.source': 'custom',
+          'sentry.segment.name.source': 'custom',
           'sentry.sample_rate': 1,
           'sentry.origin': 'manual',
         },
@@ -1656,7 +1635,7 @@ describe('startInactiveSpan', () => {
     expect(innerTransaction?.contexts).toEqual({
       trace: {
         data: {
-          'sentry.source': 'custom',
+          'sentry.segment.name.source': 'custom',
           'sentry.origin': 'manual',
         },
         parent_span_id: innerParentSpanId,
