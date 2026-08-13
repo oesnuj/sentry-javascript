@@ -254,6 +254,14 @@ export interface BrowserTracingOptions {
    */
   _experiments: Partial<{
     enableInteractions: boolean;
+
+    /**
+     * Also report LCP, CLS and INP for soft navigations, using the browser's Soft Navigations API.
+     * Forwarded to the auto-registered `webVitalsIntegration` as `reportSoftNavs`.
+     *
+     * Default: false
+     */
+    enableSoftNavWebVitals: boolean;
   }>;
 
   /**
@@ -334,7 +342,7 @@ export const browserTracingIntegration = ((options: Partial<BrowserTracingOption
     enableInp,
     enableLongTask,
     enableLongAnimationFrame,
-    _experiments: { enableInteractions },
+    _experiments: { enableInteractions, enableSoftNavWebVitals },
     beforeStartSpan,
     idleTimeout,
     finalTimeout,
@@ -623,6 +631,7 @@ export const browserTracingIntegration = ((options: Partial<BrowserTracingOption
         client.addIntegration(
           webVitalsIntegration({
             ignore: enableInp ? [] : ['inp'],
+            reportSoftNavs: enableSoftNavWebVitals,
           }),
         );
       }

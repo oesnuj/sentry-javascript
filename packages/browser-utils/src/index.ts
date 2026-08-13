@@ -4,7 +4,10 @@ export {
   addTtfbInstrumentationHandler,
   addLcpInstrumentationHandler,
   addInpInstrumentationHandler,
+  enableSoftNavigationReporting,
 } from './instrumentation/performanceObserver';
+
+export { startSoftNavigationCorrelation, supportsSoftNavigations } from './web-vitals/softNavs';
 
 export {
   addPerformanceEntries,
