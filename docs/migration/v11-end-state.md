@@ -857,7 +857,7 @@ Sentry.init({
 
 ### `@sentry/core` span attributes
 
-- The deprecated `semanticAttributes` re-export was removed. Import span attribute constants from `@sentry/core` directly.
+- `SEMANTIC_ATTRIBUTE_SENTRY_SOURCE` (`sentry.source`) was removed. Use `SENTRY_SEGMENT_NAME_SOURCE` (`sentry.segment.name.source`) from `@sentry/conventions/attributes` instead. The constant is no longer re-exported from platform SDKs (`@sentry/browser`, `@sentry/node`, etc.).
 
 ### AI integrations
 

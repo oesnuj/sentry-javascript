@@ -1,5 +1,6 @@
 import { captureException, getAbsoluteUrl } from '@sentry/browser';
 import {
+  SENTRY_SEGMENT_NAME_SOURCE,
   NAVIGATION_ROUTE_ID,
   PARAMS_KEY_BASE,
   SENTRY_OP,
@@ -12,7 +13,6 @@ import {
   getCurrentScope,
   getRootSpan,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
-  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   spanToJSON,
 } from '@sentry/core';
 
@@ -116,9 +116,9 @@ export function instrumentVueRouter(
     // Update the existing page load span with parametrized route information
     if (options.instrumentPageLoad && activePageLoadSpan) {
       const existingAttributes = spanToJSON(activePageLoadSpan).attributes;
-      if (existingAttributes[SEMANTIC_ATTRIBUTE_SENTRY_SOURCE] !== 'custom') {
+      if (existingAttributes[SENTRY_SEGMENT_NAME_SOURCE] !== 'custom') {
         activePageLoadSpan.updateName(spanName);
-        activePageLoadSpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_SOURCE, transactionSource);
+        activePageLoadSpan.setAttribute(SENTRY_SEGMENT_NAME_SOURCE, transactionSource);
       }
 
       // Set router attributes on the existing pageload transaction
@@ -139,7 +139,7 @@ export function instrumentVueRouter(
           attributes: {
             ...attributes,
             [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto.navigation.vue',
-            [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: transactionSource,
+            [SENTRY_SEGMENT_NAME_SOURCE]: transactionSource,
           },
         },
         getAbsoluteUrl(to.fullPath ?? to.path),

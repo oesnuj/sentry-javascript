@@ -4,7 +4,6 @@ import {
   SEMANTIC_ATTRIBUTE_CACHE_ITEM_SIZE,
   SEMANTIC_ATTRIBUTE_CACHE_KEY,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
-  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   spanToJSON,
   truncate,
 } from '@sentry/core';
@@ -20,6 +19,7 @@ import {
 } from '../../../utils/redisCache';
 import type { IORedisResponseCustomAttributeFunction } from './vendored/types';
 import {
+  SENTRY_SEGMENT_NAME_SOURCE,
   NET_PEER_NAME,
   NET_PEER_PORT,
   NETWORK_PEER_ADDRESS,
@@ -114,5 +114,5 @@ export const cacheResponseHook: IORedisResponseCustomAttributeFunction = (
   span.updateName(
     _redisOptions.maxCacheKeyLength ? truncate(spanDescription, _redisOptions.maxCacheKeyLength) : spanDescription,
   );
-  span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_SOURCE, undefined);
+  span.setAttribute(SENTRY_SEGMENT_NAME_SOURCE, undefined);
 };

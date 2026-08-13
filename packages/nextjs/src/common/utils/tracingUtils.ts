@@ -1,7 +1,7 @@
-import { HTTP_ROUTE, SENTRY_OP } from '@sentry/conventions/attributes';
+import { SENTRY_SEGMENT_NAME_SOURCE, HTTP_ROUTE, SENTRY_OP } from '@sentry/conventions/attributes';
 import { WEB_SERVER_FUNCTION_SPAN_OP } from '@sentry/conventions/op';
 import type { PropagationContext, RawAttributes, Span } from '@sentry/core';
-import { isObjectLike, Scope, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from '@sentry/core';
+import { isObjectLike, Scope } from '@sentry/core';
 import { ATTR_NEXT_SEGMENT, ATTR_NEXT_SPAN_NAME, ATTR_NEXT_SPAN_TYPE } from '../nextSpanAttributes';
 
 const commonPropagationContextMap = new WeakMap<object, PropagationContext>();
@@ -111,6 +111,6 @@ export function maybeEnhanceServerComponentSpanName(
     'sentry.nextjs.ssr.function.type': segment === PAGE_SEGMENT ? 'Page' : 'Layout',
     'sentry.nextjs.ssr.function.route': route as string | undefined,
     [SENTRY_OP]: WEB_SERVER_FUNCTION_SPAN_OP,
-    [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'route',
+    [SENTRY_SEGMENT_NAME_SOURCE]: 'route',
   });
 }

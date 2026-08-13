@@ -1,6 +1,6 @@
-import { SENTRY_GRAPHQL_OPERATION } from '@sentry/conventions/attributes';
+import { SENTRY_SEGMENT_NAME_SOURCE, SENTRY_GRAPHQL_OPERATION } from '@sentry/conventions/attributes';
 import type { Span, SpanAttributeValue } from '@sentry/core';
-import { getClient, isObjectLike, getRootSpan, spanToJSON, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from '@sentry/core';
+import { getClient, isObjectLike, getRootSpan, spanToJSON } from '@sentry/core';
 
 // Same key the OTel path uses, so renames stay consistent across both.
 const ORIGINAL_DESCRIPTION_ATTRIBUTE = 'original-description';
@@ -60,9 +60,9 @@ export function renameRootSpanWithOperation(span: Span, operationType: string, o
   }
 
   // `updateName` stamps `source: 'custom'`, so re-set the original source afterwards to preserve it.
-  const source = rootSpanJson.attributes[SEMANTIC_ATTRIBUTE_SENTRY_SOURCE];
+  const source = rootSpanJson.attributes[SENTRY_SEGMENT_NAME_SOURCE];
   rootSpan.updateName(`${originalDescription} (${getGraphqlOperationNamesFromAttribute(operations)})`);
-  rootSpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_SOURCE, source as SpanAttributeValue);
+  rootSpan.setAttribute(SENTRY_SEGMENT_NAME_SOURCE, source as SpanAttributeValue);
 }
 
 /** Format the accumulated operations for the root span name: up to 5 sorted names, then `+N`. */

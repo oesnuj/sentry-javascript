@@ -6,6 +6,7 @@ import {
   WINDOW,
 } from '@sentry/browser';
 import {
+  SENTRY_SEGMENT_NAME_SOURCE,
   PARAMS_KEY_BASE,
   URL_FULL,
   URL_PATH,
@@ -13,12 +14,7 @@ import {
   URL_TEMPLATE,
 } from '@sentry/conventions/attributes';
 import type { Integration } from '@sentry/core';
-import {
-  SEMANTIC_ATTRIBUTE_SENTRY_OP,
-  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
-  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
-  filterCollectedUrl,
-} from '@sentry/core';
+import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, filterCollectedUrl } from '@sentry/core';
 import type { AnyRouter } from '@tanstack/solid-router';
 
 type RouteMatch = ReturnType<AnyRouter['matchRoutes']>[number];
@@ -69,7 +65,7 @@ export function tanstackRouterBrowserTracingIntegration<R extends AnyRouter>(
         fallbackName: string,
       ): void => {
         span.updateName(match ? match.routeId : fallbackName);
-        span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_SOURCE, match ? 'route' : 'url');
+        span.setAttribute(SENTRY_SEGMENT_NAME_SOURCE, match ? 'route' : 'url');
         span.setAttributes({
           [URL_TEMPLATE]: match?.routeId,
           ...locationToSpanUrlAttributes(router, toLocation),
@@ -89,7 +85,7 @@ export function tanstackRouterBrowserTracingIntegration<R extends AnyRouter>(
           attributes: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'pageload',
             [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto.pageload.solid.tanstack_router',
-            [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: routeMatch ? 'route' : 'url',
+            [SENTRY_SEGMENT_NAME_SOURCE]: routeMatch ? 'route' : 'url',
             ...(routeMatch && { [URL_TEMPLATE]: routeMatch.routeId }),
             ...routeMatchToParamSpanAttributes(routeMatch),
           },
@@ -140,7 +136,7 @@ export function tanstackRouterBrowserTracingIntegration<R extends AnyRouter>(
               attributes: {
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto.navigation.solid.tanstack_router',
-                [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: routeMatch ? 'route' : 'url',
+                [SENTRY_SEGMENT_NAME_SOURCE]: routeMatch ? 'route' : 'url',
                 ...(routeMatch && { [URL_TEMPLATE]: routeMatch.routeId }),
                 ...routeMatchToParamSpanAttributes(routeMatch),
               },
