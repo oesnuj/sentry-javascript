@@ -32,6 +32,7 @@ import {
   startBrowserTracingPageLoadSpan,
 } from '../../src/tracing/browserTracingIntegration';
 import { PREVIOUS_TRACE_TMP_SPAN_ATTRIBUTE } from '../../src/tracing/linkedTraces';
+import * as webVitalsModule from '../../src/integrations/webVitals';
 import { getDefaultBrowserClientOptions } from '../helper/browser-client-options';
 import { URL_FULL, URL_PATH } from '@sentry/conventions/attributes';
 
@@ -202,6 +203,23 @@ describe('browserTracingIntegration', () => {
     client.init();
 
     expect(client.getIntegrationByName('WebVitals')).toBeDefined();
+  });
+
+  it.each([
+    ['defaults to off', {}, false],
+    ['is forwarded when enabled', { enableSoftNavWebVitals: true }, true],
+  ])('enableSoftNavWebVitals %s', (_name, options, expected) => {
+    const webVitalsSpy = vi.spyOn(webVitalsModule, 'webVitalsIntegration');
+    const client = new BrowserClient(
+      getDefaultBrowserClientOptions({
+        tracesSampleRate: 1,
+        integrations: [browserTracingIntegration(options)],
+      }),
+    );
+    setCurrentClient(client);
+    client.init();
+
+    expect(webVitalsSpy).toHaveBeenCalledWith(expect.objectContaining({ reportSoftNavs: expected }));
   });
 
   it('works with tracing disabled', () => {

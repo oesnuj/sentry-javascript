@@ -147,6 +147,15 @@ export interface BrowserTracingOptions {
   enableInp: boolean;
 
   /**
+   * If true, Sentry will also report LCP, CLS and INP for soft navigations, using the browser's
+   * [Soft Navigations API](https://developer.chrome.com/docs/web-platform/soft-navigations-experiment).
+   * Forwarded to the auto-registered `webVitalsIntegration` as `reportSoftNavs`.
+   *
+   * Default: false
+   */
+  enableSoftNavWebVitals: boolean;
+
+  /**
    * @deprecated This option is no longer used. Element timing is now tracked via the standalone
    * `elementTimingIntegration`. Add it to your `integrations` array to collect element timing metrics.
    */
@@ -254,14 +263,6 @@ export interface BrowserTracingOptions {
    */
   _experiments: Partial<{
     enableInteractions: boolean;
-
-    /**
-     * Also report LCP, CLS and INP for soft navigations, using the browser's Soft Navigations API.
-     * Forwarded to the auto-registered `webVitalsIntegration` as `reportSoftNavs`.
-     *
-     * Default: false
-     */
-    enableSoftNavWebVitals: boolean;
   }>;
 
   /**
@@ -299,6 +300,7 @@ const DEFAULT_BROWSER_TRACING_OPTIONS: BrowserTracingOptions = {
   enableLongTask: true,
   enableLongAnimationFrame: true,
   enableInp: true,
+  enableSoftNavWebVitals: false,
   ignoreResourceSpans: [],
   detectRedirects: true,
   linkPreviousTrace: 'in-memory',
@@ -342,7 +344,8 @@ export const browserTracingIntegration = ((options: Partial<BrowserTracingOption
     enableInp,
     enableLongTask,
     enableLongAnimationFrame,
-    _experiments: { enableInteractions, enableSoftNavWebVitals },
+    _experiments: { enableInteractions },
+    enableSoftNavWebVitals,
     beforeStartSpan,
     idleTimeout,
     finalTimeout,
