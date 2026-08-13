@@ -5,7 +5,7 @@ test('Sends a transaction for a request to app router', async ({ page }) => {
   const serverComponentTransactionPromise = waitForTransaction('nextjs-app-dir', transactionEvent => {
     return (
       transactionEvent?.transaction === 'GET /server-component/parameter/[...parameters]' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'].startsWith('/server-component/parameter/1337/42')
+      transactionEvent.contexts?.trace?.data?.['url.path'].startsWith('/server-component/parameter/1337/42')
     );
   });
 
@@ -19,11 +19,11 @@ test('Sends a transaction for a request to app router', async ({ page }) => {
       'sentry.origin': 'auto',
       'sentry.sample_rate': 1,
       'sentry.source': 'route',
-      'http.method': 'GET',
+      'http.request.method': 'GET',
       'http.response.status_code': 200,
       'http.route': '/server-component/parameter/[...parameters]',
-      'http.status_code': 200,
-      'http.target': '/server-component/parameter/1337/42',
+      'http.response.status_code': 200,
+      'url.path': '/server-component/parameter/1337/42',
       'sentry.kind': 'server',
       'next.route': '/server-component/parameter/[...parameters]',
     }),

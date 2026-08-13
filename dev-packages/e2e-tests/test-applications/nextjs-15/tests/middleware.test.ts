@@ -26,14 +26,14 @@ test('does not leak normalizedRequest between concurrent middleware invocations'
   const firstTransactionPromise = waitForTransaction('nextjs-15', async transactionEvent => {
     return (
       transactionEvent?.transaction === 'middleware GET' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === '/api/endpoint-behind-middleware'
+      transactionEvent.contexts?.trace?.data?.['url.path'] === '/api/endpoint-behind-middleware'
     );
   });
 
   const secondTransactionPromise = waitForTransaction('nextjs-15', async transactionEvent => {
     return (
       transactionEvent?.transaction === 'middleware GET' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === '/api/endpoint-behind-middleware-2'
+      transactionEvent.contexts?.trace?.data?.['url.path'] === '/api/endpoint-behind-middleware-2'
     );
   });
 
@@ -56,14 +56,14 @@ test('concurrent middleware invocations without inbound tracing headers get dist
   const firstTransactionPromise = waitForTransaction('nextjs-15', async transactionEvent => {
     return (
       transactionEvent?.transaction === 'middleware GET' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === '/api/endpoint-behind-middleware'
+      transactionEvent.contexts?.trace?.data?.['url.path'] === '/api/endpoint-behind-middleware'
     );
   });
 
   const secondTransactionPromise = waitForTransaction('nextjs-15', async transactionEvent => {
     return (
       transactionEvent?.transaction === 'middleware GET' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === '/api/endpoint-behind-middleware-2'
+      transactionEvent.contexts?.trace?.data?.['url.path'] === '/api/endpoint-behind-middleware-2'
     );
   });
 

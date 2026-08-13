@@ -6,11 +6,14 @@ import type { HttpClientRequest, HttpIncomingMessage } from './types';
 import { getRequestUrlFromClientRequest } from './get-request-url';
 import type { StartSpanOptions } from '../../types/startSpanOptions';
 import {
-  HTTP_HOST,
-  HTTP_METHOD,
-  HTTP_TARGET,
-  NET_PEER_NAME,
+  HTTP_RESPONSE_BODY_SIZE,
+  HTTP_RESPONSE_STATUS_CODE,
+  NETWORK_PEER_ADDRESS,
+  NETWORK_PEER_PORT,
+  NETWORK_PROTOCOL_VERSION,
+  NETWORK_TRANSPORT,
   SENTRY_KIND,
+  SERVER_ADDRESS,
   URL_FULL,
   USER_AGENT_ORIGINAL,
 } from '@sentry/conventions/attributes';
@@ -33,17 +36,14 @@ export function getOutgoingRequestSpanData(request: HttpClientRequest): StartSpa
   return {
     name,
     attributes: {
-      // TODO(v11): Update these to the Sentry semantic attributes for urls.
-      // https://getsentry.github.io/sentry-conventions/attributes/
       [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'http.client',
       [SENTRY_KIND]: 'client',
       [URL_FULL]: filterCollectedUrl(url),
-      /* eslint-disable typescript/no-deprecated */
-      [HTTP_METHOD]: request.method,
-      [HTTP_TARGET]: filterCollectedUrl(request.path || '/'),
-      [NET_PEER_NAME]: request.host,
-      [HTTP_HOST]: request.getHeader('host') as string | undefined,
-      /* eslint-enable typescript/no-deprecated */
+      // On a client span the peer is the server being called, so both the request host and the
+      // `Host` header land on `server.address`; the header wins when both are set.
+      // `url.path`, `url.query` and `http.request.method` come from `attributes` below, which is why
+      // the old `http.target` (path plus query) has no separate replacement here.
+      [SERVER_ADDRESS]: request.getHeader('host') ?? request.host,
       [USER_AGENT_ORIGINAL]: userAgent || undefined,
       ...attributes,
     },
@@ -59,15 +59,10 @@ export function setIncomingResponseSpanData(response: HttpIncomingMessage, span:
   const transport = httpVersion?.toUpperCase() !== 'QUIC' ? 'ip_tcp' : 'ip_udp';
 
   span.setAttributes({
-    'http.response.status_code': statusCode,
-    'network.protocol.version': httpVersion,
-    // TODO(v11): Update these to the Sentry semantic attributes for urls.
-    // https://getsentry.github.io/sentry-conventions/attributes/
-    'http.flavor': httpVersion,
-    'network.transport': transport,
-    'net.transport': transport,
+    [HTTP_RESPONSE_STATUS_CODE]: statusCode,
+    [NETWORK_PROTOCOL_VERSION]: httpVersion,
+    [NETWORK_TRANSPORT]: transport,
     'http.status_text': statusMessage?.toUpperCase(),
-    'http.status_code': statusCode,
     ...getResponseContentLengthAttributes(response),
     ...getSocketAttrs(socket),
   });
@@ -77,10 +72,8 @@ function getSocketAttrs(socket: HttpIncomingMessage['socket']): SpanAttributes {
   if (!socket) return {};
   const { remoteAddress, remotePort } = socket;
   return {
-    'network.peer.address': remoteAddress,
-    'network.peer.port': remotePort,
-    'net.peer.ip': remoteAddress,
-    'net.peer.port': remotePort,
+    [NETWORK_PEER_ADDRESS]: remoteAddress,
+    [NETWORK_PEER_PORT]: remotePort,
   };
 }
 
@@ -89,9 +82,11 @@ function getResponseContentLengthAttributes(response: HttpIncomingMessage): Span
   const contentLengthHeader = headers['content-length'];
   const length = contentLengthHeader ? parseInt(String(contentLengthHeader), 10) : -1;
   const encoding = headers['content-encoding'];
+  // Only the compressed size has a conventions attribute; `http.response_content_length_uncompressed`
+  // is not part of `@sentry/conventions` at all, so it keeps its name.
   return length >= 0
     ? encoding && encoding !== 'identity'
-      ? { 'http.response_content_length': length }
+      ? { [HTTP_RESPONSE_BODY_SIZE]: length }
       : { 'http.response_content_length_uncompressed': length }
     : {};
 }

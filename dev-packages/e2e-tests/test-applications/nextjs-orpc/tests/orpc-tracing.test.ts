@@ -39,12 +39,12 @@ test('should trace orpc server component', async ({ page }) => {
       'http.response.status_code': 200,
       'next.span_name': 'POST /rpc/[[...rest]]/route',
       'next.span_type': 'BaseServer.handleRequest',
-      'http.method': 'POST',
-      'http.target': '/rpc/planet/list',
+      'http.request.method': 'POST',
+      'url.path': '/rpc/planet/list',
       'next.rsc': false,
       'http.route': '/rpc/[[...rest]]',
       'next.route': '/rpc/[[...rest]]',
-      'http.status_code': 200,
+      'http.response.status_code': 200,
     },
     op: 'http.server',
     origin: 'auto',
@@ -61,7 +61,7 @@ test('should trace orpc client component', async ({ page }) => {
   const orpcTxPromise = waitForTransaction('nextjs-orpc', transactionEvent => {
     return (
       transactionEvent.transaction === 'POST /rpc/[[...rest]]' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === '/rpc/planet/find'
+      transactionEvent.contexts?.trace?.data?.['url.path'] === '/rpc/planet/find'
     );
   });
 
@@ -96,12 +96,12 @@ test('should trace orpc client component', async ({ page }) => {
       'http.response.status_code': 200,
       'next.span_name': 'POST /rpc/[[...rest]]/route',
       'next.span_type': 'BaseServer.handleRequest',
-      'http.method': 'POST',
-      'http.target': '/rpc/planet/find',
+      'http.request.method': 'POST',
+      'url.path': '/rpc/planet/find',
       'next.rsc': false,
       'http.route': '/rpc/[[...rest]]',
       'next.route': '/rpc/[[...rest]]',
-      'http.status_code': 200,
+      'http.response.status_code': 200,
     },
     op: 'http.server',
     origin: 'auto',

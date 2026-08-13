@@ -2,27 +2,25 @@
 import { errorMonitor } from 'node:events';
 import type { IncomingHttpHeaders } from 'node:http';
 import {
-  HTTP_CLIENT_IP,
-  HTTP_FLAVOR,
-  HTTP_HOST,
-  HTTP_METHOD,
+  CLIENT_ADDRESS,
+  HTTP_REQUEST_METHOD,
   HTTP_RESPONSE_STATUS_CODE,
-  HTTP_SCHEME,
-  HTTP_STATUS_CODE,
-  HTTP_TARGET,
-  HTTP_USER_AGENT,
-  NET_HOST_IP,
-  NET_HOST_NAME,
-  NET_HOST_PORT,
-  NET_PEER_IP,
-  NET_PEER_PORT,
-  NET_TRANSPORT,
+  NETWORK_LOCAL_ADDRESS,
+  NETWORK_LOCAL_PORT,
+  NETWORK_PEER_ADDRESS,
+  NETWORK_PEER_PORT,
+  NETWORK_PROTOCOL_VERSION,
+  NETWORK_TRANSPORT,
   SENTRY_HTTP_PREFETCH,
+  SENTRY_KIND,
+  SERVER_ADDRESS,
+  SERVER_PORT,
   URL_FRAGMENT,
   URL_FULL,
   URL_PATH,
   URL_QUERY,
-  SENTRY_KIND,
+  URL_SCHEME,
+  USER_AGENT_ORIGINAL,
 } from '@sentry/conventions/attributes';
 import type {
   Event,
@@ -51,6 +49,7 @@ import {
   withActiveSpan,
   getUrlFragment,
   getUrlQuery,
+  splitHostHeader,
   filterCollectedUrl,
   filterCollectedUrlQuery,
 } from '@sentry/core';
@@ -159,7 +158,7 @@ const _httpServerSpansIntegration = ((options: HttpServerSpansIntegrationOptions
           const ips = headers['x-forwarded-for'];
           const httpVersion = request.httpVersion;
           const host = headers.host as string | undefined;
-          const hostname = host?.replace(/^(.*)(:[0-9]{1,5})/, '$1') || 'localhost';
+          const { hostname, port: hostPort } = splitHostHeader(host);
 
           const scheme = fullUrl.startsWith('https') ? 'https' : 'http';
 
@@ -183,21 +182,16 @@ const _httpServerSpansIntegration = ((options: HttpServerSpansIntegrationOptions
               [URL_PATH]: urlObj?.pathname ?? httpTargetWithoutQueryFragment,
               [URL_QUERY]: filterCollectedUrlQuery(query, client),
               [URL_FRAGMENT]: fragment,
-              // Old Semantic Conventions attributes - added for compatibility with what `@opentelemetry/instrumentation-http` output before
-              /* eslint-disable typescript/no-deprecated */
-              [HTTP_METHOD]: normalizedRequest.method,
-              [HTTP_TARGET]: filterCollectedUrl(
-                urlObj ? `${urlObj.pathname}${urlObj.search}` : httpTargetWithoutQueryFragment,
-                client,
-              ),
-              [HTTP_HOST]: host,
-              [NET_HOST_NAME]: hostname,
-              [HTTP_CLIENT_IP]: typeof ips === 'string' ? ips.split(',')[0] : undefined,
-              [HTTP_USER_AGENT]: userAgent,
-              [HTTP_SCHEME]: scheme,
-              [HTTP_FLAVOR]: httpVersion,
-              [NET_TRANSPORT]: httpVersion?.toUpperCase() === 'QUIC' ? 'ip_udp' : 'ip_tcp',
-              /* eslint-enable typescript/no-deprecated */
+              [HTTP_REQUEST_METHOD]: normalizedRequest.method,
+              // `server.address`/`server.port` come from the `Host` header, which is what the client
+              // addressed; the raw header is still available on `http.request.header.host`.
+              [SERVER_ADDRESS]: hostname,
+              [SERVER_PORT]: hostPort,
+              [CLIENT_ADDRESS]: typeof ips === 'string' ? ips.split(',')[0] : undefined,
+              [USER_AGENT_ORIGINAL]: userAgent,
+              [URL_SCHEME]: scheme,
+              [NETWORK_PROTOCOL_VERSION]: httpVersion,
+              [NETWORK_TRANSPORT]: httpVersion?.toUpperCase() === 'QUIC' ? 'ip_udp' : 'ip_tcp',
               ...getRequestContentLengthAttribute(request),
               ...httpHeadersToSpanAttributes(normalizedRequest.headers || {}, client.getDataCollectionOptions()),
             },
@@ -247,7 +241,7 @@ const _httpServerSpansIntegration = ((options: HttpServerSpansIntegrationOptions
     },
     processEvent(event) {
       if (event.type === 'transaction') {
-        const statusCode = event.contexts?.trace?.data?.['http.response.status_code'];
+        const statusCode = event.contexts?.trace?.data?.[HTTP_RESPONSE_STATUS_CODE];
         if (typeof statusCode === 'number') {
           // Drop transaction if it has a status code that should be ignored
           if (shouldFilterStatusCode(statusCode, ignoreStatusCodes)) {
@@ -407,21 +401,17 @@ function getIncomingRequestAttributesOnResponse(
 
   const newAttributes: SpanAttributes = {
     [HTTP_RESPONSE_STATUS_CODE]: statusCode,
-    // eslint-disable-next-line typescript/no-deprecated
-    [HTTP_STATUS_CODE]: statusCode,
     'http.status_text': statusMessage?.toUpperCase(),
   };
 
   if (socket) {
     const { localAddress, localPort, remoteAddress, remotePort } = socket;
-    // eslint-disable-next-line typescript/no-deprecated
-    newAttributes[NET_HOST_IP] = localAddress;
-    // eslint-disable-next-line typescript/no-deprecated
-    newAttributes[NET_HOST_PORT] = localPort;
-    // eslint-disable-next-line typescript/no-deprecated
-    newAttributes[NET_PEER_IP] = remoteAddress;
-    // oxlint-disable-next-line typescript/no-deprecated
-    newAttributes[NET_PEER_PORT] = remotePort;
+    // On a server span the socket peer is the client, so the remote address/port are
+    // `network.peer.*` rather than `server.*`.
+    newAttributes[NETWORK_LOCAL_ADDRESS] = localAddress;
+    newAttributes[NETWORK_LOCAL_PORT] = localPort;
+    newAttributes[NETWORK_PEER_ADDRESS] = remoteAddress;
+    newAttributes[NETWORK_PEER_PORT] = remotePort;
   }
 
   return newAttributes;

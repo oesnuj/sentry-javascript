@@ -22,19 +22,19 @@ test('Sends successful transaction', async ({ baseURL }) => {
       'http.response.status_code': 200,
       'url.full': 'http://localhost:3030/test-success',
       'url.path': '/test-success',
-      'http.host': 'localhost:3030',
-      'net.host.name': 'localhost',
-      'http.method': 'GET',
-      'http.scheme': 'http',
-      'http.target': '/test-success',
-      'http.user_agent': 'node',
-      'http.flavor': '1.1',
-      'net.transport': 'ip_tcp',
-      'net.host.ip': expect.any(String),
-      'net.host.port': expect.any(Number),
-      'net.peer.ip': expect.any(String),
-      'net.peer.port': expect.any(Number),
-      'http.status_code': 200,
+      'server.address': 'localhost:3030',
+      'server.address': 'localhost',
+      'http.request.method': 'GET',
+      'url.scheme': 'http',
+      'url.path': '/test-success',
+      'user_agent.original': 'node',
+      'network.protocol.version': '1.1',
+      'network.transport': 'ip_tcp',
+      'network.local.address': expect.any(String),
+      'network.local.port': expect.any(Number),
+      'network.peer.address': expect.any(String),
+      'server.port': expect.any(Number),
+      'http.response.status_code': 200,
       'http.status_text': 'OK',
       'http.route': '/test-success',
       'http.request.header.accept': '*/*',
@@ -72,7 +72,7 @@ test('Sends successful transaction', async ({ baseURL }) => {
     {
       data: {
         'hapi.type': 'router',
-        'http.method': 'GET',
+        'http.request.method': 'GET',
         'http.route': '/test-success',
         'sentry.op': 'router',
         'sentry.origin': 'auto.http.hapi',
@@ -129,13 +129,13 @@ test('Isolates requests', async ({ baseURL }) => {
   const transaction1Promise = waitForTransaction('node-hapi', transactionEvent => {
     return (
       transactionEvent?.contexts?.trace?.op === 'http.server' &&
-      transactionEvent?.contexts?.trace?.data?.['http.target'] === '/test-param/888'
+      transactionEvent?.contexts?.trace?.data?.['url.path'] === '/test-param/888'
     );
   });
   const transaction2Promise = waitForTransaction('node-hapi', transactionEvent => {
     return (
       transactionEvent?.contexts?.trace?.op === 'http.server' &&
-      transactionEvent?.contexts?.trace?.data?.['http.target'] === '/test-param/999'
+      transactionEvent?.contexts?.trace?.data?.['url.path'] === '/test-param/999'
     );
   });
 

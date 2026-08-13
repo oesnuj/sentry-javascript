@@ -23,19 +23,19 @@ test('Sends an API route transaction', async ({ baseURL }) => {
       'http.response.status_code': 200,
       'url.full': 'http://localhost:3030/test-transaction',
       'url.path': '/test-transaction',
-      'http.host': 'localhost:3030',
-      'net.host.name': 'localhost',
-      'http.method': 'GET',
-      'http.scheme': 'http',
-      'http.target': '/test-transaction',
-      'http.user_agent': 'node',
-      'http.flavor': '1.1',
-      'net.transport': 'ip_tcp',
-      'net.host.ip': expect.any(String),
-      'net.host.port': expect.any(Number),
-      'net.peer.ip': expect.any(String),
-      'net.peer.port': expect.any(Number),
-      'http.status_code': 200,
+      'server.address': 'localhost:3030',
+      'server.address': 'localhost',
+      'http.request.method': 'GET',
+      'url.scheme': 'http',
+      'url.path': '/test-transaction',
+      'user_agent.original': 'node',
+      'network.protocol.version': '1.1',
+      'network.transport': 'ip_tcp',
+      'network.local.address': expect.any(String),
+      'network.local.port': expect.any(Number),
+      'network.peer.address': expect.any(String),
+      'server.port': expect.any(Number),
+      'http.response.status_code': 200,
       'http.status_text': 'OK',
       'http.route': '/test-transaction',
       'http.request.header.accept': '*/*',
@@ -141,7 +141,7 @@ test('Sends an API route transaction for an errored route', async ({ baseURL }) 
   expect(transactionEvent.contexts?.trace?.op).toEqual('http.server');
   expect(transactionEvent.transaction).toEqual('GET /test-exception/:id');
   expect(transactionEvent.contexts?.trace?.status).toEqual('internal_error');
-  expect(transactionEvent.contexts?.trace?.data?.['http.status_code']).toEqual(500);
+  expect(transactionEvent.contexts?.trace?.data?.['http.response.status_code']).toEqual(500);
 
   const spans = transactionEvent.spans || [];
 

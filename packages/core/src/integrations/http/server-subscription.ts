@@ -27,7 +27,7 @@ import { getClient, getCurrentScope, getIsolationScope, withIsolationScope } fro
 import { hasSpansEnabled } from '../../utils/hasSpansEnabled';
 import { headersToDict, httpHeadersToSpanAttributes, httpRequestToRequestData } from '../../utils/request';
 import { patchRequestToCaptureBody } from './patch-request-to-capture-body';
-import { parseStringToURLObject, stripUrlQueryAndFragment } from '../../utils/url';
+import { getUrlFragment, getUrlQuery, parseStringToURLObject, stripUrlQueryAndFragment } from '../../utils/url';
 import { recordRequestSession } from './record-request-session';
 import { generateSpanId, generateTraceId } from '../../utils/propagationContext';
 import { continueTrace } from '../../tracing/trace';
@@ -40,8 +40,28 @@ import {
 import { safeMathRandom } from '../../utils/randomSafeContext';
 import type { SpanAttributes } from '../../types/span';
 import type { SpanStatus } from '../../types/spanStatus';
-import { URL_FULL, URL_PATH, SENTRY_KIND } from '@sentry/conventions/attributes';
-import { filterCollectedUrl } from '../../utils/data-collection/filterCollectedUrl';
+import {
+  CLIENT_ADDRESS,
+  HTTP_REQUEST_METHOD,
+  HTTP_RESPONSE_STATUS_CODE,
+  NETWORK_LOCAL_ADDRESS,
+  NETWORK_LOCAL_PORT,
+  NETWORK_PEER_ADDRESS,
+  NETWORK_PEER_PORT,
+  NETWORK_PROTOCOL_VERSION,
+  NETWORK_TRANSPORT,
+  SENTRY_HTTP_PREFETCH,
+  SENTRY_KIND,
+  SERVER_ADDRESS,
+  SERVER_PORT,
+  URL_FRAGMENT,
+  URL_FULL,
+  URL_PATH,
+  URL_QUERY,
+  URL_SCHEME,
+  USER_AGENT_ORIGINAL,
+} from '@sentry/conventions/attributes';
+import { filterCollectedUrl, filterCollectedUrlQuery } from '../../utils/data-collection/filterCollectedUrl';
 
 // Tree-shakable guard to remove all code related to tracing
 declare const __SENTRY_TRACING__: boolean;
@@ -278,7 +298,7 @@ function buildServerSpanWrap(
       const ips = headers['x-forwarded-for'];
       const httpVersion = request.httpVersion;
       const host = headers.host as undefined | string;
-      const hostname = host?.replace(/^(.*)(:[0-9]{1,5})/, '$1') || 'localhost';
+      const { hostname, port: hostPort } = splitHostHeader(host);
       const scheme = fullUrl.startsWith('https') ? 'https' : 'http';
       const { socket } = request;
       const { localAddress, localPort, remoteAddress, remotePort } = socket ?? {};
@@ -292,27 +312,29 @@ function buildServerSpanWrap(
             [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto.http.server',
             [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'url',
             [SENTRY_KIND]: 'server',
-            // Network attributes
-            'net.host.ip': localAddress,
-            'net.host.port': localPort,
-            'net.peer.ip': remoteAddress,
-            'net.peer.port': remotePort,
-            'sentry.http.prefetch': isKnownPrefetchRequest(request) || undefined,
-            // Old Semantic Conventions attributes for compatibility
+            // Network attributes. On a server span the socket peer is the client, so the remote
+            // address/port are `network.peer.*` rather than `server.*`.
+            [NETWORK_LOCAL_ADDRESS]: localAddress,
+            [NETWORK_LOCAL_PORT]: localPort,
+            [NETWORK_PEER_ADDRESS]: remoteAddress,
+            [NETWORK_PEER_PORT]: remotePort,
+            [SENTRY_HTTP_PREFETCH]: isKnownPrefetchRequest(request) || undefined,
             [URL_FULL]: filterCollectedUrl(fullUrl, client),
             [URL_PATH]: urlObj?.pathname ?? httpTargetWithoutQueryFragment,
-            'http.method': method,
-            'http.target': filterCollectedUrl(
-              urlObj ? `${urlObj.pathname}${urlObj.search}` : httpTargetWithoutQueryFragment,
-              client,
-            ),
-            'http.host': host,
-            'net.host.name': hostname,
-            'http.client_ip': typeof ips === 'string' ? ips.split(',')[0] : undefined,
-            'http.user_agent': userAgent,
-            'http.scheme': scheme,
-            'http.flavor': httpVersion,
-            'net.transport': httpVersion?.toUpperCase() === 'QUIC' ? 'ip_udp' : 'ip_tcp',
+            // The query and fragment used to only reach the span folded into the deprecated
+            // `http.target`; they get their own attributes now, matching the node server spans.
+            [URL_QUERY]: filterCollectedUrlQuery(getUrlQuery(urlObj?.search), client),
+            [URL_FRAGMENT]: getUrlFragment(urlObj?.hash),
+            [HTTP_REQUEST_METHOD]: method,
+            // `server.address`/`server.port` come from the `Host` header, which is what the client
+            // addressed; the raw header is still available on `http.request.header.host`.
+            [SERVER_ADDRESS]: hostname,
+            [SERVER_PORT]: hostPort,
+            [CLIENT_ADDRESS]: typeof ips === 'string' ? ips.split(',')[0] : undefined,
+            [USER_AGENT_ORIGINAL]: userAgent,
+            [URL_SCHEME]: scheme,
+            [NETWORK_PROTOCOL_VERSION]: httpVersion,
+            [NETWORK_TRANSPORT]: httpVersion?.toUpperCase() === 'QUIC' ? 'ip_udp' : 'ip_tcp',
             ...getRequestContentLengthAttribute(request),
             ...httpHeadersToSpanAttributes(normalizedRequest.headers || {}, dataCollectionOptions),
           },
@@ -332,8 +354,7 @@ function buildServerSpanWrap(
             // set attributes that come from the response
             span.setAttributes({
               'http.status_text': response.statusMessage?.toUpperCase(),
-              'http.response.status_code': response.statusCode,
-              'http.status_code': response.statusCode,
+              [HTTP_RESPONSE_STATUS_CODE]: response.statusCode,
               ...httpHeadersToSpanAttributes(headersToDict(response.headers), dataCollectionOptions, 'response'),
             });
             span.setStatus(status);
@@ -409,6 +430,19 @@ export function isStaticAssetRequest(urlPath: string): boolean {
 function isKnownPrefetchRequest(req: HttpIncomingMessage): boolean {
   // Currently only handles Next.js prefetch requests but may check other frameworks in the future.
   return req.headers['next-router-prefetch'] === '1';
+}
+
+/**
+ * Split a `Host` header into `server.address` and `server.port`. The two used to share the single
+ * `http.host` attribute, which carried the port inline.
+ */
+export function splitHostHeader(host: string | undefined): { hostname: string; port: number | undefined } {
+  const match = host?.match(/^(.*):([0-9]{1,5})$/);
+  if (match?.[1]) {
+    const port = parseInt(match[2] as string, 10);
+    return { hostname: match[1], port: port <= 65535 ? port : undefined };
+  }
+  return { hostname: host || 'localhost', port: undefined };
 }
 
 function getRequestContentLengthAttribute(request: HttpIncomingMessage): SpanAttributes {

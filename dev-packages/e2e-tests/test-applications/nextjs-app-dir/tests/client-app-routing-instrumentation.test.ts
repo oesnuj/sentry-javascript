@@ -42,7 +42,7 @@ test('Creates a navigation transaction for app router routes', async ({ page }) 
       // It seems to differ between Next.js versions whether the route is parameterized or not
       (transactionEvent?.transaction === 'GET /server-component/parameter/foo/bar/baz' ||
         transactionEvent?.transaction === 'GET /server-component/parameter/[...parameters]') &&
-      transactionEvent.contexts?.trace?.data?.['http.target'].startsWith('/server-component/parameter/foo/bar/baz')
+      transactionEvent.contexts?.trace?.data?.['url.path'].startsWith('/server-component/parameter/foo/bar/baz')
     );
   });
 

@@ -5,7 +5,7 @@ import {
 } from '../../../../src/integrations/http/get-outgoing-span-data';
 import type { HttpClientRequest, HttpIncomingMessage } from '../../../../src/integrations/http/types';
 import type { Span } from '../../../../src/types/span';
-import { HTTP_METHOD, HTTP_TARGET, NET_PEER_NAME, URL_FULL } from '@sentry/conventions/attributes';
+import { HTTP_REQUEST_METHOD, SERVER_ADDRESS, URL_FULL, URL_PATH } from '@sentry/conventions/attributes';
 
 function makeMockRequest(overrides: Partial<Record<string, unknown>> = {}): HttpClientRequest {
   return {
@@ -65,19 +65,14 @@ describe('getOutgoingRequestSpanData', () => {
     expect(result.name).toMatch(/^POST /);
   });
 
-  it('includes URL_FULL, HTTP_METHOD, HTTP_TARGET, NET_PEER_NAME', () => {
+  it('includes URL_FULL, HTTP_REQUEST_METHOD, URL_PATH, SERVER_ADDRESS', () => {
     const result = getOutgoingRequestSpanData(makeMockRequest());
     expect(result.attributes).toMatchObject({
       [URL_FULL]: 'http://example.com/api/test',
-      [HTTP_METHOD]: 'GET',
-      [HTTP_TARGET]: '/api/test',
-      [NET_PEER_NAME]: 'example.com',
+      [HTTP_REQUEST_METHOD]: 'GET',
+      [URL_PATH]: '/api/test',
+      [SERVER_ADDRESS]: 'example.com',
     });
-  });
-
-  it('falls back to "/" for http.target when path is not set', () => {
-    const result = getOutgoingRequestSpanData(makeMockRequest({ path: undefined }));
-    expect(result.attributes!['http.target']).toBe('/');
   });
 
   it('includes user_agent.original when user-agent header is set', () => {
@@ -113,9 +108,7 @@ describe('setIncomingResponseSpanData', () => {
   it('sets network.protocol.version and http.flavor from httpVersion', () => {
     const span = makeMockSpan();
     setIncomingResponseSpanData(makeMockResponse({ httpVersion: '2.0' }), span);
-    expect(span.setAttributes).toHaveBeenCalledWith(
-      expect.objectContaining({ 'network.protocol.version': '2.0', 'http.flavor': '2.0' }),
-    );
+    expect(span.setAttributes).toHaveBeenCalledWith(expect.objectContaining({ 'network.protocol.version': '2.0' }));
   });
 
   it('sets http.status_text from statusMessage', () => {
@@ -127,17 +120,13 @@ describe('setIncomingResponseSpanData', () => {
   it('uses ip_tcp transport for non-QUIC connections', () => {
     const span = makeMockSpan();
     setIncomingResponseSpanData(makeMockResponse({ httpVersion: '1.1' }), span);
-    expect(span.setAttributes).toHaveBeenCalledWith(
-      expect.objectContaining({ 'network.transport': 'ip_tcp', 'net.transport': 'ip_tcp' }),
-    );
+    expect(span.setAttributes).toHaveBeenCalledWith(expect.objectContaining({ 'network.transport': 'ip_tcp' }));
   });
 
   it('uses ip_udp transport for QUIC connections', () => {
     const span = makeMockSpan();
     setIncomingResponseSpanData(makeMockResponse({ httpVersion: 'QUIC' }), span);
-    expect(span.setAttributes).toHaveBeenCalledWith(
-      expect.objectContaining({ 'network.transport': 'ip_udp', 'net.transport': 'ip_udp' }),
-    );
+    expect(span.setAttributes).toHaveBeenCalledWith(expect.objectContaining({ 'network.transport': 'ip_udp' }));
   });
 
   it('includes socket address and port attributes when socket is present', () => {
@@ -150,8 +139,6 @@ describe('setIncomingResponseSpanData', () => {
       expect.objectContaining({
         'network.peer.address': '1.2.3.4',
         'network.peer.port': 12345,
-        'net.peer.ip': '1.2.3.4',
-        'net.peer.port': 12345,
       }),
     );
   });
@@ -173,6 +160,6 @@ describe('setIncomingResponseSpanData', () => {
       headers: { 'content-length': '100', 'content-encoding': 'gzip' },
     });
     setIncomingResponseSpanData(response, span);
-    expect(span.setAttributes).toHaveBeenCalledWith(expect.objectContaining({ 'http.response_content_length': 100 }));
+    expect(span.setAttributes).toHaveBeenCalledWith(expect.objectContaining({ 'http.response.body.size': 100 }));
   });
 });

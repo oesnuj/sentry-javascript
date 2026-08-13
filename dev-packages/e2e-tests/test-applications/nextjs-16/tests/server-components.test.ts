@@ -8,7 +8,7 @@ test('Sends a transaction for a request to app router with URL', async ({ page }
   const serverComponentTransactionPromise = waitForTransaction('nextjs-16', transactionEvent => {
     return (
       transactionEvent?.transaction === 'GET /parameterized/[one]/beep/[two]' &&
-      transactionEvent.contexts?.trace?.data?.['http.target']?.startsWith('/parameterized/1337/beep/42')
+      transactionEvent.contexts?.trace?.data?.['url.path']?.startsWith('/parameterized/1337/beep/42')
     );
   });
 
@@ -22,11 +22,11 @@ test('Sends a transaction for a request to app router with URL', async ({ page }
       'sentry.origin': 'auto',
       'sentry.sample_rate': 1,
       'sentry.source': 'route',
-      'http.method': 'GET',
+      'http.request.method': 'GET',
       'http.response.status_code': 200,
       'http.route': '/parameterized/[one]/beep/[two]',
-      'http.status_code': 200,
-      'http.target': '/parameterized/1337/beep/42',
+      'http.response.status_code': 200,
+      'url.path': '/parameterized/1337/beep/42',
       'sentry.kind': 'server',
       'next.route': '/parameterized/[one]/beep/[two]',
     }),

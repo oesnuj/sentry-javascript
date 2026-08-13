@@ -1,5 +1,12 @@
 /* eslint-disable max-lines */
-import { HTTP_METHOD, SERVER_ADDRESS, URL_FRAGMENT, URL_FULL, URL_QUERY } from '@sentry/conventions/attributes';
+import {
+  HTTP_REQUEST_METHOD,
+  HTTP_RESPONSE_BODY_SIZE,
+  SERVER_ADDRESS,
+  URL_FRAGMENT,
+  URL_FULL,
+  URL_QUERY,
+} from '@sentry/conventions/attributes';
 import type { Client } from './client';
 import { getClient } from './currentScopes';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from './semanticAttributes';
@@ -289,7 +296,7 @@ function endSpan(span: Span, handlerData: HandlerDataFetch): void {
     if (contentLength) {
       const contentLengthNum = parseInt(contentLength);
       if (contentLengthNum > 0) {
-        span.setAttribute('http.response_content_length', contentLengthNum);
+        span.setAttribute(HTTP_RESPONSE_BODY_SIZE, contentLengthNum);
       }
     }
   } else if (handlerData.error) {
@@ -358,7 +365,7 @@ function getFetchSpanAttributes(
     [URL_FULL]: filterCollectedUrl(stripDataUrlContent(url), client),
     type: 'fetch',
     // oxlint-disable-next-line typescript/no-deprecated
-    [HTTP_METHOD]: method,
+    [HTTP_REQUEST_METHOD]: method,
     [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: spanOrigin,
     [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'http.client',
   };

@@ -14,7 +14,7 @@ Sentry.init({
       return Boolean(
         normalizedRequest?.method &&
         normalizedRequest?.url &&
-        normalizedRequest.url === samplingContext.attributes['http.target'],
+        normalizedRequest.url === samplingContext.attributes['url.path'],
       );
     }
 

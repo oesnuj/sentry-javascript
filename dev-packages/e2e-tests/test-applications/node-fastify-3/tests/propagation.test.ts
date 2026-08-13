@@ -8,14 +8,14 @@ test('Propagates trace for outgoing http requests', async ({ baseURL }) => {
   const inboundTransactionPromise = waitForTransaction('node-fastify-3', transactionEvent => {
     return (
       transactionEvent.contexts?.trace?.op === 'http.server' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === `/test-inbound-headers/${id}`
+      transactionEvent.contexts?.trace?.data?.['url.path'] === `/test-inbound-headers/${id}`
     );
   });
 
   const outboundTransactionPromise = waitForTransaction('node-fastify-3', transactionEvent => {
     return (
       transactionEvent.contexts?.trace?.op === 'http.server' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === `/test-outgoing-http/${id}`
+      transactionEvent.contexts?.trace?.data?.['url.path'] === `/test-outgoing-http/${id}`
     );
   });
 
@@ -64,19 +64,19 @@ test('Propagates trace for outgoing http requests', async ({ baseURL }) => {
       'http.response.status_code': 200,
       'url.full': `http://localhost:3030/test-outgoing-http/${id}`,
       'url.path': `/test-outgoing-http/${id}`,
-      'http.host': 'localhost:3030',
-      'net.host.name': 'localhost',
-      'http.method': 'GET',
-      'http.scheme': 'http',
-      'http.target': `/test-outgoing-http/${id}`,
-      'http.user_agent': 'node',
-      'http.flavor': '1.1',
-      'net.transport': 'ip_tcp',
-      'net.host.ip': expect.any(String),
-      'net.host.port': expect.any(Number),
-      'net.peer.ip': expect.any(String),
-      'net.peer.port': expect.any(Number),
-      'http.status_code': 200,
+      'server.address': 'localhost:3030',
+      'server.address': 'localhost',
+      'http.request.method': 'GET',
+      'url.scheme': 'http',
+      'url.path': `/test-outgoing-http/${id}`,
+      'user_agent.original': 'node',
+      'network.protocol.version': '1.1',
+      'network.transport': 'ip_tcp',
+      'network.local.address': expect.any(String),
+      'network.local.port': expect.any(Number),
+      'network.peer.address': expect.any(String),
+      'server.port': expect.any(Number),
+      'http.response.status_code': 200,
       'http.status_text': 'OK',
       'http.route': '/test-outgoing-http/:id',
       'http.request.header.accept': '*/*',
@@ -103,18 +103,18 @@ test('Propagates trace for outgoing http requests', async ({ baseURL }) => {
       'http.response.status_code': 200,
       'url.full': `http://localhost:3030/test-inbound-headers/${id}`,
       'url.path': `/test-inbound-headers/${id}`,
-      'http.host': 'localhost:3030',
-      'net.host.name': 'localhost',
-      'http.method': 'GET',
-      'http.scheme': 'http',
-      'http.target': `/test-inbound-headers/${id}`,
-      'http.flavor': '1.1',
-      'net.transport': 'ip_tcp',
-      'net.host.ip': expect.any(String),
-      'net.host.port': expect.any(Number),
-      'net.peer.ip': expect.any(String),
-      'net.peer.port': expect.any(Number),
-      'http.status_code': 200,
+      'server.address': 'localhost:3030',
+      'server.address': 'localhost',
+      'http.request.method': 'GET',
+      'url.scheme': 'http',
+      'url.path': `/test-inbound-headers/${id}`,
+      'network.protocol.version': '1.1',
+      'network.transport': 'ip_tcp',
+      'network.local.address': expect.any(String),
+      'network.local.port': expect.any(Number),
+      'network.peer.address': expect.any(String),
+      'server.port': expect.any(Number),
+      'http.response.status_code': 200,
       'http.status_text': 'OK',
       'http.route': '/test-inbound-headers/:id',
       'http.request.header.baggage': expect.any(String),
@@ -137,14 +137,14 @@ test('Propagates trace for outgoing fetch requests', async ({ baseURL }) => {
   const inboundTransactionPromise = waitForTransaction('node-fastify-3', transactionEvent => {
     return (
       transactionEvent?.contexts?.trace?.op === 'http.server' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === `/test-inbound-headers/${id}`
+      transactionEvent.contexts?.trace?.data?.['url.path'] === `/test-inbound-headers/${id}`
     );
   });
 
   const outboundTransactionPromise = waitForTransaction('node-fastify-3', transactionEvent => {
     return (
       transactionEvent?.contexts?.trace?.op === 'http.server' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === `/test-outgoing-fetch/${id}`
+      transactionEvent.contexts?.trace?.data?.['url.path'] === `/test-outgoing-fetch/${id}`
     );
   });
 
@@ -193,19 +193,19 @@ test('Propagates trace for outgoing fetch requests', async ({ baseURL }) => {
       'http.response.status_code': 200,
       'url.full': `http://localhost:3030/test-outgoing-fetch/${id}`,
       'url.path': `/test-outgoing-fetch/${id}`,
-      'http.host': 'localhost:3030',
-      'net.host.name': 'localhost',
-      'http.method': 'GET',
-      'http.scheme': 'http',
-      'http.target': `/test-outgoing-fetch/${id}`,
-      'http.user_agent': 'node',
-      'http.flavor': '1.1',
-      'net.transport': 'ip_tcp',
-      'net.host.ip': expect.any(String),
-      'net.host.port': expect.any(Number),
-      'net.peer.ip': expect.any(String),
-      'net.peer.port': expect.any(Number),
-      'http.status_code': 200,
+      'server.address': 'localhost:3030',
+      'server.address': 'localhost',
+      'http.request.method': 'GET',
+      'url.scheme': 'http',
+      'url.path': `/test-outgoing-fetch/${id}`,
+      'user_agent.original': 'node',
+      'network.protocol.version': '1.1',
+      'network.transport': 'ip_tcp',
+      'network.local.address': expect.any(String),
+      'network.local.port': expect.any(Number),
+      'network.peer.address': expect.any(String),
+      'server.port': expect.any(Number),
+      'http.response.status_code': 200,
       'http.status_text': 'OK',
       'http.route': '/test-outgoing-fetch/:id',
       'http.request.header.accept': '*/*',
@@ -232,20 +232,20 @@ test('Propagates trace for outgoing fetch requests', async ({ baseURL }) => {
       'http.response.status_code': 200,
       'url.full': `http://localhost:3030/test-inbound-headers/${id}`,
       'url.path': `/test-inbound-headers/${id}`,
-      'http.host': 'localhost:3030',
-      'net.host.name': 'localhost',
-      'http.method': 'GET',
-      'http.scheme': 'http',
-      'http.target': `/test-inbound-headers/${id}`,
-      'http.flavor': '1.1',
-      'net.transport': 'ip_tcp',
-      'net.host.ip': expect.any(String),
-      'net.host.port': expect.any(Number),
-      'net.peer.ip': expect.any(String),
-      'net.peer.port': expect.any(Number),
-      'http.status_code': 200,
+      'server.address': 'localhost:3030',
+      'server.address': 'localhost',
+      'http.request.method': 'GET',
+      'url.scheme': 'http',
+      'url.path': `/test-inbound-headers/${id}`,
+      'network.protocol.version': '1.1',
+      'network.transport': 'ip_tcp',
+      'network.local.address': expect.any(String),
+      'network.local.port': expect.any(Number),
+      'network.peer.address': expect.any(String),
+      'server.port': expect.any(Number),
+      'http.response.status_code': 200,
       'http.status_text': 'OK',
-      'http.user_agent': 'node',
+      'user_agent.original': 'node',
       'http.route': '/test-inbound-headers/:id',
       'http.request.header.accept': '*/*',
       'http.request.header.accept_encoding': 'gzip, deflate',
@@ -270,7 +270,7 @@ test('Propagates trace for outgoing external http requests', async ({ baseURL })
   const inboundTransactionPromise = waitForTransaction('node-fastify-3', transactionEvent => {
     return (
       transactionEvent?.contexts?.trace?.op === 'http.server' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === `/test-outgoing-http-external-allowed`
+      transactionEvent.contexts?.trace?.data?.['url.path'] === `/test-outgoing-http-external-allowed`
     );
   });
 
@@ -307,7 +307,7 @@ test('Does not propagate outgoing http requests not covered by tracePropagationT
   const inboundTransactionPromise = waitForTransaction('node-fastify-3', transactionEvent => {
     return (
       transactionEvent?.contexts?.trace?.op === 'http.server' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === `/test-outgoing-http-external-disallowed`
+      transactionEvent.contexts?.trace?.data?.['url.path'] === `/test-outgoing-http-external-disallowed`
     );
   });
 
@@ -331,7 +331,7 @@ test('Propagates trace for outgoing external fetch requests', async ({ baseURL }
   const inboundTransactionPromise = waitForTransaction('node-fastify-3', transactionEvent => {
     return (
       transactionEvent?.contexts?.trace?.op === 'http.server' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === `/test-outgoing-fetch-external-allowed`
+      transactionEvent.contexts?.trace?.data?.['url.path'] === `/test-outgoing-fetch-external-allowed`
     );
   });
 
@@ -368,7 +368,7 @@ test('Does not propagate outgoing fetch requests not covered by tracePropagation
   const inboundTransactionPromise = waitForTransaction('node-fastify-3', transactionEvent => {
     return (
       transactionEvent?.contexts?.trace?.op === 'http.server' &&
-      transactionEvent.contexts?.trace?.data?.['http.target'] === `/test-outgoing-fetch-external-disallowed`
+      transactionEvent.contexts?.trace?.data?.['url.path'] === `/test-outgoing-fetch-external-disallowed`
     );
   });
 

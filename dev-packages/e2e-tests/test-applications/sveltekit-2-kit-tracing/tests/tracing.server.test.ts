@@ -23,7 +23,7 @@ test('server pageload request span has nested request span for sub request', asy
         data: {
           [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'http.server',
           [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto.http.sveltekit',
-          'http.method': 'GET',
+          'http.request.method': 'GET',
           'http.route': '/server-load-fetch',
           'sveltekit.tracing.original_name': 'sveltekit.handle.root',
         },
@@ -79,7 +79,7 @@ test('server pageload request span has nested request span for sub request', asy
       // sub request http.server span:
       expect.objectContaining({
         data: expect.objectContaining({
-          'http.method': 'GET',
+          'http.request.method': 'GET',
           'http.route': '/api/users',
           'url.full': 'http://localhost:3030/api/users',
           'url.path': '/api/users',

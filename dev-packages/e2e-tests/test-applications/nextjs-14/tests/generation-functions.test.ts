@@ -5,9 +5,7 @@ test('Should emit a span for a generateMetadata() function invocation', async ({
   const testTitle = 'should-emit-span';
 
   const transactionPromise = waitForTransaction('nextjs-14', async transactionEvent => {
-    return (
-      transactionEvent.contexts?.trace?.data?.['http.target'] === `/generation-functions?metadataTitle=${testTitle}`
-    );
+    return transactionEvent.contexts?.trace?.data?.['url.path'] === `/generation-functions?metadataTitle=${testTitle}`;
   });
 
   await page.goto(`/generation-functions?metadataTitle=${testTitle}`);
@@ -36,7 +34,7 @@ test('Should send a transaction and an error event for a faulty generateMetadata
 
   const transactionPromise = waitForTransaction('nextjs-14', async transactionEvent => {
     return (
-      transactionEvent.contexts?.trace?.data?.['http.target'] ===
+      transactionEvent.contexts?.trace?.data?.['url.path'] ===
       `/generation-functions?metadataTitle=${testTitle}&shouldThrowInGenerateMetadata=1`
     );
   });
@@ -65,8 +63,7 @@ test('Should send a transaction event for a generateViewport() function invocati
 
   const transactionPromise = waitForTransaction('nextjs-14', async transactionEvent => {
     return (
-      transactionEvent.contexts?.trace?.data?.['http.target'] ===
-      `/generation-functions?viewportThemeColor=${testTitle}`
+      transactionEvent.contexts?.trace?.data?.['url.path'] === `/generation-functions?viewportThemeColor=${testTitle}`
     );
   });
 
@@ -91,7 +88,7 @@ test('Should send a transaction and an error event for a faulty generateViewport
 
   const transactionPromise = waitForTransaction('nextjs-14', async transactionEvent => {
     return (
-      transactionEvent.contexts?.trace?.data?.['http.target'] ===
+      transactionEvent.contexts?.trace?.data?.['url.path'] ===
       `/generation-functions?viewportThemeColor=${testTitle}&shouldThrowInGenerateViewport=1`
     );
   });
