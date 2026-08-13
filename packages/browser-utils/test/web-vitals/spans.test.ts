@@ -648,7 +648,7 @@ describe('trackInpAsSpan', () => {
     inpCallback({ metric: { value: 120, entries: [{ name: 'scroll', duration: 120 }] } });
 
     const call = vi.mocked(SentryCore.startInactiveSpan).mock.calls[0]![0];
-    expect(call.attributes?.['sentry.op']).toBe('ui.interaction');
+    expect(call.attributes?.['sentry.op']).toBe('ui.interaction.click');
     expect(call.attributes?.['browser.web_vital.inp.value']).toBe(120);
   });
 });
@@ -787,8 +787,9 @@ describe('soft navigation web vitals', () => {
 
     const call = vi.mocked(SentryCore.startInactiveSpan).mock.calls[0]![0];
     expect(call.name).toBe('Interaction to next paint');
-    // No entry means no interaction type, so the op stays unqualified rather than guessing one.
-    expect(call.attributes?.['sentry.op']).toBe('ui.interaction');
+    // No entry means no interaction type. The op still has to stay inside `ui.interaction.*` so
+    // these fast navigations are not excluded from INP aggregations.
+    expect(call.attributes?.['sentry.op']).toBe('ui.interaction.click');
     expect(call.attributes?.['browser.web_vital.inp.value']).toBe(8);
     expect(call.attributes?.['browser.soft_navigation.id']).toBe(2);
     expect(call.parentSpan).toBe(navigationSpan);
