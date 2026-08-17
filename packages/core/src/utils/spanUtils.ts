@@ -383,6 +383,23 @@ export function addChildSpanToSpan(span: SpanWithPotentialChildren, childSpan: S
   // children before this link exists, so drop it once the span is known not to be the segment.
   childSpan.setAttribute(SENTRY_SEGMENT_NAME_SOURCE, undefined);
 
+  // `_sentryChildSpans` exists only so `getSpanDescendants()` can walk the tree when the segment span
+  // is sent, and that walk stops at an unsampled span without ever visiting its children. So a child
+  // tracked here would be held for the parent's lifetime and never read.
+  if (!spanIsSampled(span)) {
+    return;
+  }
+
+  // Once the segment span stopped recording, the tree has been read for the last time, and a child
+  // starting now belongs to whatever segment comes next: it is re-emitted on its own instead. Tracking
+  // it here would pin it for as long as the parent lives, which for a span left active in an async
+  // context (e.g. a framework boot span captured by a queue consumer) is the rest of the process. Only
+  // a parent that is itself still recording keeps tracking, so a late child that outlives its segment
+  // still collects the subtree it is re-emitted with.
+  if (!span.isRecording() && !rootSpan.isRecording()) {
+    return;
+  }
+
   // We store a list of child spans on the parent span
   // We need this for `getSpanDescendants()` to work
   if (span[CHILD_SPANS_FIELD]) {
