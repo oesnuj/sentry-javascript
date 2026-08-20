@@ -1,6 +1,6 @@
 import * as diagnosticsChannel from 'node:diagnostics_channel';
 import type { IntegrationFn } from '@sentry/core';
-import { defineIntegration } from '@sentry/core';
+import { defineIntegration, hasSpansEnabled } from '@sentry/core';
 import { CHANNELS } from '../../orchestrion/channels';
 import { hapiModuleNames } from '../../orchestrion/config/hapi';
 import { invokeOrchestrionInstrumentation } from '../../orchestrion/instrumentation';
@@ -46,30 +46,32 @@ const _hapiIntegration = (() => {
 }) satisfies IntegrationFn;
 
 function instrumentHapi(): void {
-  // `subscribe` requires all five lifecycle hooks. We only act on `start`,
-  // which orchestrion fires synchronously with the live args array — that's
-  // the moment we mutate the handlers in place.
-  diagnosticsChannel.tracingChannel(CHANNELS.HAPI_ROUTE).subscribe({
-    start(rawCtx) {
-      const ctx = rawCtx as HapiChannelContext;
-      wrapRouteArguments(ctx.arguments, ctx.self?.realm?.plugin);
-    },
-    end() {},
-    asyncStart() {},
-    asyncEnd() {},
-    error() {},
-  });
+  if (hasSpansEnabled()) {
+    // `subscribe` requires all five lifecycle hooks. We only act on `start`,
+    // which orchestrion fires synchronously with the live args array — that's
+    // the moment we mutate the handlers in place.
+    diagnosticsChannel.tracingChannel(CHANNELS.HAPI_ROUTE).subscribe({
+      start(rawCtx) {
+        const ctx = rawCtx as HapiChannelContext;
+        wrapRouteArguments(ctx.arguments, ctx.self?.realm?.plugin);
+      },
+      end() {},
+      asyncStart() {},
+      asyncEnd() {},
+      error() {},
+    });
 
-  diagnosticsChannel.tracingChannel(CHANNELS.HAPI_EXT).subscribe({
-    start(rawCtx) {
-      const ctx = rawCtx as HapiChannelContext;
-      wrapExtArguments(ctx.arguments, ctx.self?.realm?.plugin);
-    },
-    end() {},
-    asyncStart() {},
-    asyncEnd() {},
-    error() {},
-  });
+    diagnosticsChannel.tracingChannel(CHANNELS.HAPI_EXT).subscribe({
+      start(rawCtx) {
+        const ctx = rawCtx as HapiChannelContext;
+        wrapExtArguments(ctx.arguments, ctx.self?.realm?.plugin);
+      },
+      end() {},
+      asyncStart() {},
+      asyncEnd() {},
+      error() {},
+    });
+  }
 
   // Auto-register the error handler when the server boots
   // `attachHapiErrorHandler` is idempotent, so hooking both `start` and `initialize` is safe.
