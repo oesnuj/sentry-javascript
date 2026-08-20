@@ -6,17 +6,19 @@ import {
   getActiveSpan,
   getDefaultIsolationScope,
   getIsolationScope,
+  hasSpansEnabled,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   startSpan,
 } from '@sentry/core';
 // oxlint-disable-next-line typescript/no-deprecated
 import { CODE_FUNCTION_NAME, HTTP_ROUTE, KOA_NAME, KOA_TYPE, SENTRY_OP } from '@sentry/conventions/attributes';
 import { WEB_SERVER_MIDDLEWARE_SPAN_OP } from '@sentry/conventions/op';
-import { DEBUG_BUILD } from '../debug-build';
-import { CHANNELS } from '../orchestrion/channels';
-import { koaModuleNames } from '../orchestrion/config/koa';
-import { invokeOrchestrionInstrumentation } from '../orchestrion/instrumentation';
-import { setHttpServerSpanRouteAttribute } from '../utils/setHttpServerSpanRouteAttribute';
+import { DEBUG_BUILD } from '../../debug-build';
+import { CHANNELS } from '../../orchestrion/channels';
+import { koaModuleNames } from '../../orchestrion/config/koa';
+import { invokeOrchestrionInstrumentation } from '../../orchestrion/instrumentation';
+import { setHttpServerSpanRouteAttribute } from '../../utils/setHttpServerSpanRouteAttribute';
+import { attachKoaErrorHandler, type KoaApp } from './koa-error-handler';
 
 // Same name as the OTel integration. When enabled, the OTel 'Koa' integration is omitted from the default set.
 const INTEGRATION_NAME = 'Koa' as const;
@@ -67,6 +69,11 @@ interface KoaUseContext {
   arguments: unknown[];
 }
 
+/** The `callback` channel `context` shape: `self` is the live app to attach the error listener to. */
+interface KoaCallbackContext {
+  self?: KoaApp;
+}
+
 export interface KoaIntegrationOptions {
   /** Ignore layers of the specified types (`'middleware'` and/or `'router'`). */
   ignoreLayersType?: Array<'middleware' | 'router'>;
@@ -86,11 +93,31 @@ const _koaIntegration = ((options: KoaIntegrationOptions = {}) => {
 }) satisfies IntegrationFn;
 
 function instrumentKoa(ignoreLayersType: KoaLayerType[]): void {
-  diagnosticsChannel.tracingChannel(CHANNELS.KOA_USE).subscribe({
-    start(rawCtx) {
-      handleUse(rawCtx as KoaUseContext, ignoreLayersType);
+  if (hasSpansEnabled()) {
+    diagnosticsChannel.tracingChannel(CHANNELS.KOA_USE).subscribe({
+      start(rawCtx) {
+        handleUse(rawCtx as KoaUseContext, ignoreLayersType);
+      },
+      end() {},
+      asyncStart() {},
+      asyncEnd() {},
+      error() {},
+    });
+  }
+
+  // Auto-register the error handler once the app boots.
+  // We act on `end` (after `callback()` ran) so
+  // koa's default `error` listener is already in place; `attachKoaErrorHandler`
+  // is idempotent, so repeated `callback()` calls add at most one listener.
+  diagnosticsChannel.tracingChannel(CHANNELS.KOA_CALLBACK).subscribe({
+    start() {},
+    end(rawCtx) {
+      const app = (rawCtx as KoaCallbackContext).self;
+      if (app) {
+        // oxlint-disable-next-line typescript/no-deprecated -- internal auto-registration entrypoint
+        attachKoaErrorHandler(app);
+      }
     },
-    end() {},
     asyncStart() {},
     asyncEnd() {},
     error() {},
