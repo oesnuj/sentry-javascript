@@ -27,6 +27,10 @@
  * limitations under the License.
  */
 
+// This module backs the deprecated Express exports (superseded by `expressIntegration()`), so it
+// references the deprecated `ExpressIntegrationOptions` type.
+/* oxlint-disable typescript/no-deprecated */
+
 import { SENTRY_OP } from '@sentry/conventions/attributes';
 import { WEB_SERVER_MIDDLEWARE_SPAN_OP } from '@sentry/conventions/op';
 import { DEBUG_BUILD } from '../../debug-build';

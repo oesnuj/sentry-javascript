@@ -616,6 +616,16 @@ Affected SDKs: All server-side SDKs.
 
 The LangGraph instrumentation no longer emits `gen_ai.create_agent` spans when a graph is compiled. `gen_ai.invoke_agent` and `gen_ai.execute_tool` spans are unaffected. If you reference `create_agent` spans in dashboards or alerts, update them accordingly.
 
+### Express: errors are captured automatically
+
+Affected SDKs: All server-side SDKs that support Express.
+
+`expressIntegration()` now captures errors thrown from your route handlers automatically, so calling `setupExpressErrorHandler(app)` is no longer necessary — the call can be removed. It is deprecated and will be removed in the next major version. To customize which errors are captured, pass `shouldHandleError` to `expressIntegration()` (by default, 5xx errors and errors without a resolvable status are captured, while 3xx/4xx errors are not).
+
+If you prefer to capture errors yourself, set `shouldHandleError: false` on `expressIntegration()` to opt out of automatic capture entirely, and call `Sentry.captureException` from your own error-handling middleware.
+
+The `expressErrorHandler` and `patchExpressModule` exports are deprecated for the same reason and will be removed in the next major version.
+
 ### `@sentry/nextjs`
 
 **Tracing removed from generated templates:** Tracing was removed from the generated Pages Router API handler, Edge API handler, and Middleware wrapper templates. Route handlers and middleware are still instrumented automatically, so no action is required for most users.
