@@ -1,7 +1,7 @@
 import type { Integration } from '@sentry/core';
 import { getBaseDefaultIntegrations, initWithDefaultIntegrations } from './baseSdk';
 import type { CloudflareClient, CloudflareOptions } from './client';
-import { vercelAIIntegration } from '@sentry/server-utils/orchestrion';
+import { vercelAIIntegration } from '@sentry/server-utils';
 
 /**
  * Get the default integrations for the Cloudflare SDK.
