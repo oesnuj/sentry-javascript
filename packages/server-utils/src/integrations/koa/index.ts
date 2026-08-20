@@ -1,6 +1,7 @@
 import * as diagnosticsChannel from 'node:diagnostics_channel';
 import type { IntegrationFn } from '@sentry/core';
 import {
+  addNonEnumerableProperty,
   debug,
   defineIntegration,
   getActiveSpan,
@@ -17,7 +18,7 @@ import { CHANNELS } from '../../orchestrion/channels';
 import { koaModuleNames } from '../../orchestrion/config/koa';
 import { invokeOrchestrionInstrumentation } from '../../orchestrion/instrumentation';
 import { setHttpServerSpanRouteAttribute } from '../../utils/setHttpServerSpanRouteAttribute';
-import { attachKoaErrorHandler, type KoaApp } from './koa-error-handler';
+import { attachKoaErrorHandler, KOA_CONTEXT_SPAN, type KoaApp } from './koa-error-handler';
 
 // Same name as the OTel integration. When enabled, the OTel 'Koa' integration is omitted from the default set.
 const INTEGRATION_NAME = 'Koa' as const;
@@ -210,6 +211,16 @@ function patchLayer(
         },
       },
       () => {
+        // Stash the outermost koa span (first layer wins) on the koa `ctx`, so the
+        // error listener can capture within it — koa emits its `error` event after
+        // the middleware chain (and its spans) have unwound, when no span is active.
+        if (!context[KOA_CONTEXT_SPAN]) {
+          const activeSpan = getActiveSpan();
+          if (activeSpan) {
+            addNonEnumerableProperty(context, KOA_CONTEXT_SPAN, activeSpan);
+          }
+        }
+
         const route = metadata.attributes[HTTP_ROUTE];
         if (getIsolationScope() === getDefaultIsolationScope()) {
           DEBUG_BUILD && debug.warn('Isolation scope is default isolation scope - skipping setting transactionName');
