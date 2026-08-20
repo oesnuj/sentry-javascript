@@ -6,7 +6,6 @@ import {
   getActiveSpan,
   getDefaultIsolationScope,
   getIsolationScope,
-  hasSpansEnabled,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   startSpan,
 } from '@sentry/core';
@@ -93,17 +92,15 @@ const _koaIntegration = ((options: KoaIntegrationOptions = {}) => {
 }) satisfies IntegrationFn;
 
 function instrumentKoa(ignoreLayersType: KoaLayerType[]): void {
-  if (hasSpansEnabled()) {
-    diagnosticsChannel.tracingChannel(CHANNELS.KOA_USE).subscribe({
-      start(rawCtx) {
-        handleUse(rawCtx as KoaUseContext, ignoreLayersType);
-      },
-      end() {},
-      asyncStart() {},
-      asyncEnd() {},
-      error() {},
-    });
-  }
+  diagnosticsChannel.tracingChannel(CHANNELS.KOA_USE).subscribe({
+    start(rawCtx) {
+      handleUse(rawCtx as KoaUseContext, ignoreLayersType);
+    },
+    end() {},
+    asyncStart() {},
+    asyncEnd() {},
+    error() {},
+  });
 
   // Auto-register the error handler once the app boots.
   // We act on `end` (after `callback()` ran) so
