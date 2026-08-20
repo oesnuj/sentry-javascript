@@ -1,5 +1,5 @@
 import type { Integration } from '@sentry/core';
-import { prismaIntegration } from '@sentry/server-utils';
+import { prismaIntegration, fastifyIntegration } from '@sentry/server-utils';
 import {
   amqplibIntegration,
   anthropicAIIntegration,
@@ -25,7 +25,6 @@ import {
   tediousIntegration,
   vercelAIIntegration,
 } from '@sentry/server-utils/orchestrion';
-import { fastifyIntegration } from './fastify';
 
 export function getAutoPerformanceIntegrations(): Integration[] {
   return [

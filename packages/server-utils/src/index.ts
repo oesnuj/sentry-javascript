@@ -10,7 +10,5 @@ export { vercelAIIntegration, type VercelAiOptions } from './vercel-ai';
 export {
   fastifyIntegration,
   // oxlint-disable-next-line typescript/no-deprecated
-  handleFastifyError,
-  // oxlint-disable-next-line typescript/no-deprecated
-  instrumentFastify,
+  setupFastifyErrorHandler,
 } from './integrations/fastify';
