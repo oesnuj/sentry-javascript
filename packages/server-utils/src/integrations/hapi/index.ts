@@ -1,9 +1,11 @@
 import * as diagnosticsChannel from 'node:diagnostics_channel';
 import type { IntegrationFn } from '@sentry/core';
 import { defineIntegration } from '@sentry/core';
-import { CHANNELS } from '../orchestrion/channels';
-import { hapiModuleNames } from '../orchestrion/config/hapi';
-import { invokeOrchestrionInstrumentation } from '../orchestrion/instrumentation';
+import { CHANNELS } from '../../orchestrion/channels';
+import { hapiModuleNames } from '../../orchestrion/config/hapi';
+import { invokeOrchestrionInstrumentation } from '../../orchestrion/instrumentation';
+import { attachHapiErrorHandler } from './hapi-error-handler';
+import type { HapiServer } from './hapi-types';
 import { wrapExtArguments, wrapRouteArguments } from './hapi-utils';
 
 // NOTE: same name as the OTel integration by design — when enabled, the OTel
@@ -22,6 +24,14 @@ const INTEGRATION_NAME = 'Hapi' as const;
 interface HapiChannelContext {
   arguments: unknown[];
   self?: { realm?: { plugin?: string } };
+}
+
+/**
+ * The `start`/`initialize` channel `context` shape: `self` is the live server
+ * we attach the auto-registered error listener to.
+ */
+interface HapiServerContext {
+  self?: HapiServer;
 }
 
 const _hapiIntegration = (() => {
@@ -60,6 +70,24 @@ function instrumentHapi(): void {
     asyncEnd() {},
     error() {},
   });
+
+  // Auto-register the error handler when the server boots
+  // `attachHapiErrorHandler` is idempotent, so hooking both `start` and `initialize` is safe.
+  const attachOnStart = {
+    start(rawCtx: unknown) {
+      const server = (rawCtx as HapiServerContext).self;
+      if (server) {
+        attachHapiErrorHandler(server);
+      }
+    },
+    end() {},
+    asyncStart() {},
+    asyncEnd() {},
+    error() {},
+  };
+
+  diagnosticsChannel.tracingChannel(CHANNELS.HAPI_START).subscribe(attachOnStart);
+  diagnosticsChannel.tracingChannel(CHANNELS.HAPI_INITIALIZE).subscribe(attachOnStart);
 }
 
 /**

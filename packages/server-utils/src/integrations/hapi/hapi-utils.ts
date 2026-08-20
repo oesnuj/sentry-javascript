@@ -26,7 +26,7 @@ import type {
 // eslint-disable-next-line typescript/no-deprecated -- TODO(v11): Replace deprecated attributes
 import { HTTP_METHOD, HTTP_ROUTE } from '@sentry/conventions/attributes';
 import { AttributeNames, handlerPatched, HapiLayerType, HapiLifecycleMethodNames } from './hapi-types';
-import { setHttpServerSpanRouteAttribute } from '../utils/setHttpServerSpanRouteAttribute';
+import { setHttpServerSpanRouteAttribute } from '../../utils/setHttpServerSpanRouteAttribute';
 
 type SpanAttributes = Record<string, string | undefined>;
 

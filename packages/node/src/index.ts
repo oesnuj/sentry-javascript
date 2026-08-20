@@ -42,6 +42,7 @@ export {
   instrumentStateGraph,
   instrumentStateGraphCompile,
 } from '@sentry/server-utils';
+// oxlint-disable-next-line typescript/no-deprecated
 export { setupHapiErrorHandler } from './integrations/tracing/hapi';
 export { setupKoaErrorHandler } from './integrations/tracing/koa';
 export {

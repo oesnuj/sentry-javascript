@@ -121,6 +121,7 @@ export {
   childProcessIntegration,
   createSentryWinstonTransport,
   hapiIntegration,
+  // oxlint-disable-next-line typescript/no-deprecated
   setupHapiErrorHandler,
   spotlightIntegration,
   initOpenTelemetry,

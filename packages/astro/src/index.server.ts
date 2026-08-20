@@ -124,6 +124,7 @@ export {
   setAttribute,
   setAttributes,
   setupExpressErrorHandler,
+  // oxlint-disable-next-line typescript/no-deprecated
   setupHapiErrorHandler,
   setupKoaErrorHandler,
   setUser,
