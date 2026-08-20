@@ -16,9 +16,8 @@ import {
   stackParserFromStackParserOptions,
 } from '@sentry/core';
 import { setOpenTelemetryContextAsyncContextStrategy } from '@sentry/opentelemetry';
-import { setAsyncLocalStorageAsyncContextStrategy } from '@sentry/server-utils';
+import { setAsyncLocalStorageAsyncContextStrategy, detectOrchestrionSetup } from '@sentry/server-utils';
 import { isMainThread, parentPort } from 'node:worker_threads';
-import { detectOrchestrionSetup } from '@sentry/server-utils/orchestrion';
 import { registerDiagnosticsChannelInjection } from '@sentry/server-utils/orchestrion/register';
 import { DEBUG_BUILD } from '../debug-build';
 import { childProcessIntegration } from '../integrations/childProcess';

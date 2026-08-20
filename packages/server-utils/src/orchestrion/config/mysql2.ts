@@ -1,4 +1,5 @@
-import type { InstrumentationConfig } from '..';
+import type { InstrumentationConfig } from '../apmTypes';
+
 import { getModuleNames } from './module-names';
 
 // Ports `@opentelemetry/instrumentation-mysql2` (which patches `query`/`execute` on the connection

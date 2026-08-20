@@ -1,4 +1,5 @@
-import type { InstrumentationConfig } from '..';
+import type { InstrumentationConfig } from '../apmTypes';
+
 import { getModuleNames } from './module-names';
 
 // mongoose >= 9.7.0 publishes via its own `node:diagnostics_channel` tracing channels (handled by
