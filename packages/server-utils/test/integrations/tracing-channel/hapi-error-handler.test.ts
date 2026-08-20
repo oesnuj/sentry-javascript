@@ -21,8 +21,8 @@ function makeServer(): FakeServer {
   return { server, onSpy, getListener: () => listener };
 }
 
-function makeRequest(path?: string, method = 'get'): HapiRequest {
-  return { route: { path, method } } as HapiRequest;
+function makeRequest(path?: string, method = 'get', response?: HapiRequest['response']): HapiRequest {
+  return { route: { path, method }, response } as HapiRequest;
 }
 
 describe('attachHapiErrorHandler', () => {
@@ -123,6 +123,56 @@ describe('attachHapiErrorHandler', () => {
     getListener()?.(makeRequest('/users/{id}'), {} as HapiRequestEvent);
 
     expect(setTransactionNameSpy).toHaveBeenCalledWith('GET /users/{id}');
+    expect(captureExceptionSpy).not.toHaveBeenCalled();
+  });
+
+  it('captures 5xx errors by default', () => {
+    const { server, getListener } = makeServer();
+    attachHapiErrorHandler(server);
+    const error = new Error('boom');
+
+    getListener()?.(makeRequest('/users/{id}', 'get', { isBoom: true, output: { statusCode: 500 } }), {
+      error,
+    } as HapiRequestEvent);
+
+    expect(captureExceptionSpy).toHaveBeenCalledWith(error, {
+      mechanism: { type: 'auto.function.hapi', handled: false },
+    });
+  });
+
+  it('does not capture 4xx errors by default, but still sets the transaction name', () => {
+    const { server, getListener } = makeServer();
+    attachHapiErrorHandler(server);
+
+    getListener()?.(makeRequest('/users/{id}', 'get', { isBoom: true, output: { statusCode: 404 } }), {
+      error: new Error('not found'),
+    } as HapiRequestEvent);
+
+    expect(setTransactionNameSpy).toHaveBeenCalledWith('GET /users/{id}');
+    expect(captureExceptionSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not capture 3xx responses by default', () => {
+    const { server, getListener } = makeServer();
+    attachHapiErrorHandler(server);
+
+    getListener()?.(makeRequest('/users/{id}', 'get', { statusCode: 302 }), {
+      error: new Error('redirect'),
+    } as HapiRequestEvent);
+
+    expect(captureExceptionSpy).not.toHaveBeenCalled();
+  });
+
+  it('uses a custom shouldHandleError passed to the handler', () => {
+    const shouldHandleError = vi.fn().mockReturnValue(false);
+    const { server, getListener } = makeServer();
+    attachHapiErrorHandler(server, shouldHandleError);
+    const error = new Error('boom');
+    const request = makeRequest('/users/{id}', 'get', { isBoom: true, output: { statusCode: 500 } });
+
+    getListener()?.(request, { error } as HapiRequestEvent);
+
+    expect(shouldHandleError).toHaveBeenCalledWith(error, request);
     expect(captureExceptionSpy).not.toHaveBeenCalled();
   });
 });

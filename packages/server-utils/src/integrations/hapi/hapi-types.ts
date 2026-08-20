@@ -82,11 +82,31 @@ export interface HapiRequestEvent {
   [key: string]: unknown;
 }
 
+/**
+ * The final response attached to a hapi request. On error it is a Boom object
+ * (`isBoom`, with the HTTP status under `output.statusCode`); otherwise a normal
+ * response carrying `statusCode`. Both are read to derive the status for
+ * `shouldHandleError`.
+ */
+export interface HapiResponse {
+  statusCode?: number;
+  isBoom?: boolean;
+  output?: { statusCode?: number };
+}
+
 /** The subset of a hapi request the error listener reads. */
 export interface HapiRequest {
   route: { path?: string; method: string };
+  response?: HapiResponse;
   [key: string]: unknown;
 }
+
+/**
+ * Callback deciding whether an error surfaced by hapi should be captured and
+ * sent to Sentry. Receives the error and the hapi request (whose `response`
+ * carries the resolved HTTP status).
+ */
+export type HapiShouldHandleError = (error: unknown, request: HapiRequest) => boolean;
 
 /** The shared hapi server event emitter (`core.events`, a Podium instance). */
 export interface HapiServerEvents {
