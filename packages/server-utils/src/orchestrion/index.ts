@@ -23,6 +23,7 @@ import { postgresJsIntegration } from '../integrations/postgres-js';
 import { tediousIntegration } from '../integrations/tedious';
 import { vercelAIIntegration } from '../integrations/vercel-ai';
 import { expressIntegration } from '../integrations/express';
+import { fastifyIntegration } from '../integrations/fastify';
 import { firebaseIntegration } from '../integrations/firebase';
 
 export { detectOrchestrionSetup, isOrchestrionInjected } from './detect';
@@ -62,6 +63,7 @@ export {
   tediousIntegration,
   vercelAIIntegration,
   expressIntegration,
+  fastifyIntegration,
   firebaseIntegration,
 };
 export type { InstrumentationConfig } from './apmTypes';
